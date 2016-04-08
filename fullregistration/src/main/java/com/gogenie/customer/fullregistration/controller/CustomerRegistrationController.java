@@ -1,5 +1,7 @@
 package com.gogenie.customer.fullregistration.controller;
 
+import javax.inject.Inject;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,13 +10,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
+import com.gogenie.customer.fullregistration.service.FullRegistrationService;
 
 @RestController
 public class CustomerRegistrationController {
 
+	@Inject
+	FullRegistrationService registrationService;
+	
 	@RequestMapping(value="/registration", method= RequestMethod.POST)
 	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request , BindingResult result){
-		return null;
+		RegistrationResponse registrationResponse = registrationService.registerCustomer(request);
+		return registrationResponse;
 	}
 	
 }
