@@ -6,7 +6,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @EnableWebMvc
 @Configuration
-@ComponentScan("com.gogenie.customer.registration")
+@ComponentScan("com.gogenie.customer")
 public class SpringConfig {
 
 }
