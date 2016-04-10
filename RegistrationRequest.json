@@ -1,0 +1,23 @@
+{
+	"firstname": "Shankar",
+	"middle": "V",
+	"lastname": "C",
+	"email": "daskfjkdaj@gmail.com",
+	"phone": "234923942",
+	"SecurityQuestions": {
+		"question1": "dsfkjaj",
+		"answer1": "answer1",
+		"question2": "sdafjka",
+		"answer2": "dasfa"
+	},
+	"Address": {
+		"addressline1": "dskja",
+		"addressline2": "dkasjf",
+		"city": "dkjfka",
+		"state": "dsjfak",
+		"postalcode": "daslfkl"
+	},
+	"Cardinformation": {
+		"creditcardnumber": "dfkajdkfjaljk"
+	}
+}
