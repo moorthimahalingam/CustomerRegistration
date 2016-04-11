@@ -30,7 +30,9 @@ public class RegistrationRequest implements Serializable {
     private String lastname;
     @JsonProperty("email")
     private String email;
-    @JsonProperty("phone")
+    @JsonProperty("password")
+    private String password;
+	@JsonProperty("phone")
     private String phone;
     @JsonProperty("SecurityQuestions")
     private com.gogenie.customer.fullregistration.model.SecurityQuestions SecurityQuestions;
@@ -181,6 +183,7 @@ public class RegistrationRequest implements Serializable {
         this.Address = Address;
     }
 
+    
     /**
      * 
      * @return
@@ -200,6 +203,16 @@ public class RegistrationRequest implements Serializable {
     public void setCardInformation(com.gogenie.customer.fullregistration.model.CardInformation CardInformation) {
         this.CardInformation = CardInformation;
     }
+
+    public String getPassword() {
+		return password;
+	}
+
+    @JsonProperty("password")
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 
     @Override
     public String toString() {
