@@ -32,15 +32,22 @@ public class RegistrationRequest implements Serializable {
     private String email;
     @JsonProperty("password")
     private String password;
-	@JsonProperty("phone")
-    private String phone;
+	@JsonProperty("mobilephone")
+    private String mobilephone;
+	@JsonProperty("workphone")
+    private String workphone;
+	@JsonProperty("machinfo")
+	private String machinfo;
+
     @JsonProperty("SecurityQuestions")
     private com.gogenie.customer.fullregistration.model.SecurityQuestions SecurityQuestions;
     @JsonProperty("Address")
     private com.gogenie.customer.fullregistration.model.Address Address;
-    @JsonProperty("CardInformation")
+    
+	@JsonProperty("CardInformation")
     private com.gogenie.customer.fullregistration.model.CardInformation CardInformation;
-    @JsonIgnore
+
+	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
@@ -123,26 +130,36 @@ public class RegistrationRequest implements Serializable {
         this.email = email;
     }
 
-    /**
-     * 
-     * @return
-     *     The phone
-     */
-    @JsonProperty("phone")
-    public String getPhone() {
-        return phone;
-    }
+    @JsonProperty("mobilephone")
+    public String getMobilephone() {
+		return mobilephone;
+	}
 
-    /**
-     * 
-     * @param phone
-     *     The phone
-     */
-    @JsonProperty("phone")
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    @JsonProperty("mobilephone")
+	public void setMobilephone(String mobilephone) {
+		this.mobilephone = mobilephone;
+	}
 
+    @JsonProperty("workphone")
+	public String getWorkphone() {
+		return workphone;
+	}
+
+    @JsonProperty("workphone")
+	public void setWorkphone(String workphone) {
+		this.workphone = workphone;
+	}
+
+    @JsonProperty("machinfo")
+	public String getMachinfo() {
+		return machinfo;
+	}
+
+    @JsonProperty("machinfo")
+    public void setMachinfo(String machinfo) {
+    	this.machinfo = machinfo;
+    }
+    
     /**
      * 
      * @return

@@ -17,7 +17,7 @@ import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 import com.gogenie.customer.fullregistration.service.FullRegistrationService;
 
 /**
- * Hello world!
+ * 
  *
  */
 @RestController
@@ -30,15 +30,31 @@ public class CustomerRegistrationController
 	@RequestMapping(value="/registration", method= RequestMethod.POST)
 	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request , BindingResult result) throws CustomerRegistrationException {
 		boolean isExistingCustomer = registrationService.existingCustomer(request.getEmail());
-		RegistrationResponse registrationResponse = null;
-		if (!isExistingCustomer) {
-			registrationResponse = registrationService.registerCustomer(request);;
-		} else {
-			registrationResponse = new RegistrationResponse();
+		RegistrationResponse registrationResponse = new RegistrationResponse();
+
+		if (isExistingCustomer) {
+			String registration = "User is already exists";
 			registrationResponse.setRegistrationSuccess(false);
+			registrationResponse.setResponseText(registration);
+			return registrationResponse;
 		}
+		registrationResponse = registrationService.registerCustomer(request);
+		registrationResponse.setResponseText("User is successfully registered");
 		return registrationResponse;
 	}
+	
+
+	@RequestMapping(value="/login", method=RequestMethod.GET)
+	public String loginCustomer(@RequestParam(value="email") String emailId,
+			@RequestParam(value="password") String password) throws CustomerRegistrationException {
+		
+		boolean loginSuccessful = registrationService.existingCustomer(emailId);
+		if (loginSuccessful) {
+			return "Success";
+		}
+		return "Not a valid user";
+	}
+
 	
 	@RequestMapping(value="/validate", method=RequestMethod.GET)
 	public String validateExistingCustomer(@RequestParam(value="email") String emailId) throws CustomerRegistrationException {
@@ -49,7 +65,7 @@ public class CustomerRegistrationController
 		return "Not a valid user";
 	}
 	
-	@RequestMapping(value="/retrieveSecurityQuestions", method=RequestMethod.GET)
+	@RequestMapping(value="/forgotPassword", method=RequestMethod.GET)
 	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value="email") String emailId) throws CustomerRegistrationException {
 		SecurityQuestions questions = registrationService.retrieveQuestions(emailId);
 		return questions;
@@ -65,7 +81,13 @@ public class CustomerRegistrationController
 		return "Couldn't update this time. Please try again later";
 	}
 	
-	@ExceptionHandler(CustomerRegistrationException.class)
+	@RequestMapping(value="/updateVerificationFlag", method=RequestMethod.PUT)
+	public String updatePhoneValidationFlag(@RequestParam(value="phoneVerificationFlag") String verifiedFlag) throws CustomerRegistrationException {
+		
+		return "Sucess";
+	}
+	
+	@ExceptionHandler(CustomerRegistrationException.class) 
 	public String exceptionHandler(CustomerRegistrationException exception) {
 		return "Exception " + exception.getMessage();
 	}

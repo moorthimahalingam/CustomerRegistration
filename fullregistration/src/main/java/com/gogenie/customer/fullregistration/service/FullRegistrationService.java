@@ -8,6 +8,8 @@ import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 public interface FullRegistrationService {
 	
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
+
+	public boolean loginCustomer(String emailId, String password) throws CustomerRegistrationException;
 	
 	public boolean existingCustomer(String emailId) throws CustomerRegistrationException;
 	

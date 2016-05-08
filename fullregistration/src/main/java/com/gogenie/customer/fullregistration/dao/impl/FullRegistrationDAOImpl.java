@@ -1,8 +1,11 @@
 package com.gogenie.customer.fullregistration.dao.impl;
 
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
@@ -14,18 +17,27 @@ import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 @Repository
 public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
+	@Resource
+	private DataSource registrationDataSource;
+	
+	private JdbcTemplate JdbcTemplate;
+	
+	@PostConstruct 
+	private void setJdbcTemplate() {
+		this.JdbcTemplate = new JdbcTemplate(registrationDataSource);
+	}
+	
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)  throws CustomerRegistrationException {
 		RegistrationResponse response = new RegistrationResponse();
 		try {
+			SimpleJdbcCall registerACustomer = new SimpleJdbcCall(JdbcTemplate);
 			response.setRegistrationSuccess(true);
-			throw new SQLIntegrityConstraintViolationException();
-		} catch (SQLIntegrityConstraintViolationException integrity) {
-			throw new CustomerRegistrationException("User is already exists");
-		} catch (SQLException exception) {
-			throw new CustomerRegistrationException("Having some trouble creating your record. Please try again later ");
+			
+		} catch (Exception e) {
+			throw new CustomerRegistrationException(e);
 		}
-//		return response;
+		return response;
 	}
 
 	@Override
@@ -64,6 +76,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		throw new CustomerRegistrationException ("User is already exist");
 		// TODO Auto-generated method stub
 //		return false;
+	}
+
+	@Override
+	public boolean loginCustomer(String emailId, String password) throws CustomerRegistrationException {
+		return true;
 	}
 
 }

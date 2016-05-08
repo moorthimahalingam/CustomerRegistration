@@ -11,6 +11,7 @@ import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 import com.gogenie.customer.fullregistration.service.FullRegistrationService;
+import com.gogenie.customer.fullregistration.util.CustomerRegistrationUtil;
 
 @Named
 @Service
@@ -21,6 +22,8 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
+		CustomerRegistrationUtil registrationServiceUtil = new CustomerRegistrationUtil();
+		registrationServiceUtil.generateAndSendPhoneVerificationCode(registrationRequest.getMobilephone());
 		RegistrationResponse registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
 		return registrationResponse;
 	}
@@ -41,5 +44,11 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	public boolean resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException {
 		boolean passwordReset = fullRegistrationDao.resetPassword(emailId, newPassword);
 		return passwordReset;
+	}
+
+	@Override
+	public boolean loginCustomer(String emailId, String password) throws CustomerRegistrationException {
+		boolean isLoggedIn = fullRegistrationDao.loginCustomer(emailId, password);
+		return isLoggedIn;
 	}
 }

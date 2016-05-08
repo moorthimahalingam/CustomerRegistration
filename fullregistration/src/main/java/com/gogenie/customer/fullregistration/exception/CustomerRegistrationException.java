@@ -14,4 +14,12 @@ public class CustomerRegistrationException extends Exception {
 	public CustomerRegistrationException(String message) {
 		super(message);
 	}
+	
+	public CustomerRegistrationException(Throwable t) {
+		super(t);
+	}
+	
+	public CustomerRegistrationException(Exception e) {
+		super(e);
+	}
 }

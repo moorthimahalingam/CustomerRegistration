@@ -23,7 +23,12 @@ public class CardInformation implements Serializable {
 	
 	@JsonProperty("creditcardnumber")
     private String creditcardnumber;
-    @JsonIgnore
+
+	@JsonProperty("expirydate")
+    private String expirydate;
+
+
+	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
@@ -46,9 +51,20 @@ public class CardInformation implements Serializable {
         this.creditcardnumber = creditcardnumber;
     }
 
+    
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    @JsonProperty("expirydate")
+    public String getExpirydate() {
+    	return expirydate;
+    }
+    
+    @JsonProperty("expirydate")
+    public void setExpirydate(String expirydate) {
+    	this.expirydate = expirydate;
     }
 
     @JsonAnyGetter
