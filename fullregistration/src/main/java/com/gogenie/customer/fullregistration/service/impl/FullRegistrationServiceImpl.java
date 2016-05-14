@@ -21,16 +21,24 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	FullRegistrationDAO fullRegistrationDao;
 
 	@Override
-	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
+	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)
+			throws CustomerRegistrationException {
 		CustomerRegistrationUtil registrationServiceUtil = new CustomerRegistrationUtil();
-		registrationServiceUtil.generateAndSendPhoneVerificationCode(registrationRequest.getMobilephone());
-		RegistrationResponse registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
+		RegistrationResponse registrationResponse = null;
+		if (!fullRegistrationDao.existingCustomer(registrationRequest.getEmail())) {
+			registrationServiceUtil.generateAndSendPhoneVerificationCode(registrationRequest.getMobilephone());
+			registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
+		} else {
+			registrationResponse = new RegistrationResponse();
+			registrationResponse.setRegistrationSuccess(false);
+			registrationResponse.setResponseText("User is already exist");
+		}
 		return registrationResponse;
 	}
 
 	@Override
 	public boolean existingCustomer(String emailId) throws CustomerRegistrationException {
-		boolean isCustomerExist = fullRegistrationDao.existingCustomer(emailId) ;
+		boolean isCustomerExist = fullRegistrationDao.existingCustomer(emailId);
 		return isCustomerExist;
 	}
 
@@ -47,8 +55,27 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public boolean loginCustomer(String emailId, String password) throws CustomerRegistrationException {
-		boolean isLoggedIn = fullRegistrationDao.loginCustomer(emailId, password);
-		return isLoggedIn;
+	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException {
+		RegistrationResponse registrationResponse = fullRegistrationDao.loginCustomer(emailId, password);
+		return registrationResponse;
+	}
+
+	@Override
+	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException {
+		String securityQuestionValidatedResult = fullRegistrationDao.validateSecurityQuestions(request);
+		return securityQuestionValidatedResult;
+	}
+
+	@Override 
+	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
+		RegistrationResponse response = fullRegistrationDao.retrievePhoneVerifiedFlag(emailId);
+		return response;
+	}
+	
+	@Override
+	public String updatePhoneVerifiedFlag(String customerId, String phoneverifiedFlag)
+			throws CustomerRegistrationException {
+		String phoneFlagUpdatedText = fullRegistrationDao.updatePhoneVerifiedFlag(customerId, phoneverifiedFlag);
+		return phoneFlagUpdatedText;
 	}
 }

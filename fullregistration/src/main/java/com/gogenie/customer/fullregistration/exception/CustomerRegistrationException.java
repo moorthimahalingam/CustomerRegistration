@@ -15,11 +15,20 @@ public class CustomerRegistrationException extends Exception {
 		super(message);
 	}
 	
-	public CustomerRegistrationException(Throwable t) {
+	public CustomerRegistrationException(Throwable t, String methodName) {
 		super(t);
 	}
 	
+	public CustomerRegistrationException(Exception e, String methodName) {
+		super(e);
+	}
+
+	public CustomerRegistrationException(Throwable t) {
+		super(t);
+	}
+
 	public CustomerRegistrationException(Exception e) {
 		super(e);
 	}
+
 }

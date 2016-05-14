@@ -21,13 +21,18 @@ public class RegistrationRequest implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 6745458098444463847L;
-	
+
+	@JsonProperty("customer_id")
+    private String customerId;
+
 	@JsonProperty("firstname")
     private String firstname;
-    @JsonProperty("middle")
-    private String middle;
+//    @JsonProperty("middle")
+//    private String middle;
     @JsonProperty("lastname")
     private String lastname;
+    @JsonProperty("dateofbirth")
+    private String dateofbirth;
     @JsonProperty("email")
     private String email;
     @JsonProperty("password")
@@ -36,16 +41,19 @@ public class RegistrationRequest implements Serializable {
     private String mobilephone;
 	@JsonProperty("workphone")
     private String workphone;
+	@JsonProperty("phoneValidationFlag")
+    private String phoneValidationFlag;
 	@JsonProperty("machinfo")
 	private String machinfo;
 
     @JsonProperty("SecurityQuestions")
-    private com.gogenie.customer.fullregistration.model.SecurityQuestions SecurityQuestions;
+    SecurityQuestions SecurityQuestions;
+    
     @JsonProperty("Address")
-    private com.gogenie.customer.fullregistration.model.Address Address;
+    private Address Address;
     
 	@JsonProperty("CardInformation")
-    private com.gogenie.customer.fullregistration.model.CardInformation CardInformation;
+    private CardInformation CardInformation;
 
 	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -70,27 +78,28 @@ public class RegistrationRequest implements Serializable {
         this.firstname = firstname;
     }
 
-    /**
-     * 
-     * @return
-     *     The middle
-     */
-    @JsonProperty("middle")
-    public String getMiddle() {
-        return middle;
-    }
+    
+    @JsonProperty("dateofbirth")
+    public String getDateofbirth() {
+		return dateofbirth;
+	}
 
-    /**
-     * 
-     * @param middle
-     *     The middle
-     */
-    @JsonProperty("middle")
-    public void setMiddle(String middle) {
-        this.middle = middle;
-    }
+    @JsonProperty("dateofbirth")
+	public void setDateofbirth(String dateofbirth) {
+		this.dateofbirth = dateofbirth;
+	}
 
-    /**
+    @JsonProperty("phoneValidationFlag")
+    public String getPhoneValidationFlag() {
+		return phoneValidationFlag;
+	}
+
+    @JsonProperty("phoneValidationFlag")
+	public void setPhoneValidationFlag(String phoneValidationFlag) {
+		this.phoneValidationFlag = phoneValidationFlag;
+	}
+
+	/**
      * 
      * @return
      *     The lastname
@@ -221,6 +230,7 @@ public class RegistrationRequest implements Serializable {
         this.CardInformation = CardInformation;
     }
 
+    @JsonProperty("password")
     public String getPassword() {
 		return password;
 	}
@@ -230,8 +240,17 @@ public class RegistrationRequest implements Serializable {
 		this.password = password;
 	}
 
+    @JsonProperty("customer_id")
+    public String getCustomerId() {
+		return customerId;
+	}
 
-    @Override
+    @JsonProperty("customer_id")
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
+	@Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
     }

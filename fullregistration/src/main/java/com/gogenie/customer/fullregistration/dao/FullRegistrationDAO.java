@@ -9,11 +9,17 @@ public interface FullRegistrationDAO {
 	
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
-	public boolean loginCustomer(String emailId, String password) throws CustomerRegistrationException;
+	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException;
 	
 	public boolean existingCustomer(String emailId) throws CustomerRegistrationException;
 	
 	public SecurityQuestions retrieveSecurityQuestion(String emailId) throws CustomerRegistrationException;
+	
+	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException;
+	
+	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
+	
+	public String updatePhoneVerifiedFlag(String customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	
 	public boolean resetPassword(String emailId, String newPassword) throws CustomerRegistrationException ;
 }

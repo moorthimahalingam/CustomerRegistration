@@ -19,6 +19,18 @@ public class RegistrationResponse implements Serializable {
 	@JsonProperty("responseText")
 	private String responseText;
 
+	@JsonProperty("customer_id")
+	private String customerId;
+
+	@JsonProperty("firstName")
+	private String firstName;
+
+	@JsonProperty("lastName")
+	private String lastName;
+
+	@JsonProperty("phone_isValid")
+	private String phoneIsValid;
+
 	
 	@JsonProperty("responseText")
 	public String getResponseText() {
@@ -40,7 +52,46 @@ public class RegistrationResponse implements Serializable {
 		this.registrationSuccess = registrationSuccess;
 	}
 
-	
+	@JsonProperty("customer_id")
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	@JsonProperty("customer_id")
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
+	@JsonProperty("firstName")
+	public String getFirstName() {
+		return firstName;
+	}
+
+	@JsonProperty("firstName")
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	@JsonProperty("lastName")
+	public String getLastName() {
+		return lastName;
+	}
+
+	@JsonProperty("lastName")
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	@JsonProperty("phone_isValid")
+	public String getPhoneIsValid() {
+		return phoneIsValid;
+	}
+
+	@JsonProperty("phone_isValid")
+	public void setPhoneIsValid(String phoneIsValid) {
+		this.phoneIsValid = phoneIsValid;
+	}
+
 	@Override
 	public String toString() {
 		return "RegistrationResponse [registrationSuccess=" + registrationSuccess + ", getClass()=" + getClass()

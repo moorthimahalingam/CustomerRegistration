@@ -30,6 +30,11 @@ public class Address implements Serializable {
     private String state;
     @JsonProperty("postalcode")
     private String postalcode;
+    
+    @JsonProperty("defaultAddressFlag")
+    private String defaultAddressFlag;
+    	
+
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -138,7 +143,17 @@ public class Address implements Serializable {
         return ToStringBuilder.reflectionToString(this);
     }
 
-    @JsonAnyGetter
+    @JsonProperty("defaultAddressFlag")
+    public String getDefaultAddressFlag() {
+		return defaultAddressFlag;
+	}
+
+    @JsonProperty("defaultAddressFlag")
+	public void setDefaultAddressFlag(String defaultAddressFlag) {
+		this.defaultAddressFlag = defaultAddressFlag;
+	}
+
+	@JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }

@@ -21,14 +21,15 @@ import com.gogenie.customer.fullregistration.service.FullRegistrationService;
  *
  */
 @RestController
-public class CustomerRegistrationController 
-{
-	
+public class CustomerRegistrationController {
+
 	@Inject
 	FullRegistrationService registrationService;
-	
-	@RequestMapping(value="/registration", method= RequestMethod.POST)
-	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request , BindingResult result) throws CustomerRegistrationException {
+
+	@RequestMapping(value = "/registration", method = RequestMethod.POST)
+	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request, BindingResult result)
+			throws CustomerRegistrationException {
+
 		boolean isExistingCustomer = registrationService.existingCustomer(request.getEmail());
 		RegistrationResponse registrationResponse = new RegistrationResponse();
 
@@ -42,52 +43,64 @@ public class CustomerRegistrationController
 		registrationResponse.setResponseText("User is successfully registered");
 		return registrationResponse;
 	}
-	
 
-	@RequestMapping(value="/login", method=RequestMethod.GET)
-	public String loginCustomer(@RequestParam(value="email") String emailId,
-			@RequestParam(value="password") String password) throws CustomerRegistrationException {
-		
-		boolean loginSuccessful = registrationService.existingCustomer(emailId);
-		if (loginSuccessful) {
-			return "Success";
-		}
-		return "Not a valid user";
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	public RegistrationResponse loginCustomer(@RequestParam(value = "email") String emailId,
+			@RequestParam(value = "password") String password) throws CustomerRegistrationException {
+		RegistrationResponse respone = registrationService.loginCustomer(emailId, password);
+		return respone;
 	}
 
-	
-	@RequestMapping(value="/validate", method=RequestMethod.GET)
-	public String validateExistingCustomer(@RequestParam(value="email") String emailId) throws CustomerRegistrationException {
+	@RequestMapping(value = "/validate", method = RequestMethod.GET)
+	public String validateExistingCustomer(@RequestParam(value = "email") String emailId)
+			throws CustomerRegistrationException {
 		boolean isExistingCustomer = registrationService.existingCustomer(emailId);
 		if (isExistingCustomer) {
 			return "Success";
 		}
 		return "Not a valid user";
 	}
-	
-	@RequestMapping(value="/forgotPassword", method=RequestMethod.GET)
-	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value="email") String emailId) throws CustomerRegistrationException {
+
+	@RequestMapping(value = "/retrieveSecurityQuestion", method = RequestMethod.GET)
+	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId)
+			throws CustomerRegistrationException {
 		SecurityQuestions questions = registrationService.retrieveQuestions(emailId);
 		return questions;
 	}
-	
-	
-	@RequestMapping(value="/resetPassword", method=RequestMethod.PUT)
-	public String resetPassword(@RequestBody RegistrationRequest request, BindingResult result) throws CustomerRegistrationException {
+
+	@RequestMapping(value = "/validateSecurityQuestions", method = RequestMethod.GET)
+	public String validateSecurityQuestionsToResetPassword(@RequestBody RegistrationRequest request,
+			BindingResult result) throws CustomerRegistrationException {
+		String answerDetail = registrationService.validateSecurityQuestions(request);
+		return answerDetail;
+	}
+
+	@RequestMapping(value = "/resetPassword", method = RequestMethod.PUT)
+	public String resetPassword(@RequestBody RegistrationRequest request, BindingResult result)
+			throws CustomerRegistrationException {
 		boolean passwordReset = registrationService.resetCustomerCredential(request.getEmail(), request.getPassword());
 		if (passwordReset) {
 			return "Password updated successfully";
 		}
 		return "Couldn't update this time. Please try again later";
 	}
+
+	@RequestMapping(value = "/retrievePhoneIsValidFlag", method = RequestMethod.PUT)
+	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "emailId") String emailId)
+			throws CustomerRegistrationException {
+		RegistrationResponse response = registrationService.retrievePhoneVerifiedFlag(emailId);
+		return response;
+	}
 	
-	@RequestMapping(value="/updateVerificationFlag", method=RequestMethod.PUT)
-	public String updatePhoneValidationFlag(@RequestParam(value="phoneVerificationFlag") String verifiedFlag) throws CustomerRegistrationException {
+	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
+	public String updatePhoneValidationFlag(@RequestParam(value = "customerId") String customerId,
+			@RequestParam(value="phoneVerificationFlag") String verifiedFlag)
+			throws CustomerRegistrationException {
 		
 		return "Sucess";
 	}
-	
-	@ExceptionHandler(CustomerRegistrationException.class) 
+
+	@ExceptionHandler(CustomerRegistrationException.class)
 	public String exceptionHandler(CustomerRegistrationException exception) {
 		return "Exception " + exception.getMessage();
 	}
