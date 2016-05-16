@@ -31,6 +31,9 @@ public class RegistrationResponse implements Serializable {
 	@JsonProperty("phone_isValid")
 	private String phoneIsValid;
 
+	@JsonProperty("CardInformation")
+    private CardInformation CardInformation;
+	
 	
 	@JsonProperty("responseText")
 	public String getResponseText() {
@@ -92,6 +95,26 @@ public class RegistrationResponse implements Serializable {
 		this.phoneIsValid = phoneIsValid;
 	}
 
+	/**
+     * 
+     * @return
+     *     The CardInformation
+     */
+    @JsonProperty("CardInformation")
+    public CardInformation getCardInformation() {
+        return CardInformation;
+    }
+
+    /**
+     * 
+     * @param CardInformation
+     *     The CardInformation
+     */
+    @JsonProperty("CardInformation")
+    public void setCardInformation(CardInformation CardInformation) {
+        this.CardInformation = CardInformation;
+    }
+    
 	@Override
 	public String toString() {
 		return "RegistrationResponse [registrationSuccess=" + registrationSuccess + ", getClass()=" + getClass()
