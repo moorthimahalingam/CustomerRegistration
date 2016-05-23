@@ -1,5 +1,7 @@
 package com.gogenie.customer.fullregistration.dao.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +10,7 @@ import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +21,9 @@ import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
+import com.gogenie.util.exceptiom.GoGenieUtilityServiceException;
+import com.gogenie.util.service.EncryptionService;
+import com.gogenie.util.service.impl.EncryptionServiceImpl;
 
 @Repository
 public class FullRegistrationDAOImpl implements FullRegistrationDAO {
@@ -38,6 +44,23 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		RegistrationResponse response = new RegistrationResponse();
 
 		try {
+			String password = registrationRequest.getPassword();
+			EncryptionService encryption = new EncryptionServiceImpl();
+			String encryptedPassword = encryption.encryptedValue(password);
+			registrationRequest.setEncryptedPassword(encryptedPassword);
+			CardInformation cardInformation = registrationRequest.getCardInformation();
+			if (cardInformation != null) {
+				if (cardInformation.getCreditcardnumber() != null) {
+					String encryptedCardInformation = encryption.encryptedValue(cardInformation.getCreditcardnumber());
+					cardInformation.setEncryptedCreditcardumber(encryptedCardInformation);
+				}
+				
+				if (cardInformation.getExpirydate() != null) {
+					String encryptedExpiryDate = encryption.encryptedValue(cardInformation.getExpirydate());
+					cardInformation.setEncryptedExpirydate(encryptedExpiryDate);
+				}
+			}
+			encryption = null;
 			SimpleJdbcInsert customerDetailJdbcInsert = new SimpleJdbcInsert(registrationDataSource);
 			customerDetailJdbcInsert.withTableName("customer").usingGeneratedKeyColumns("cust_id");
 			Number cust_id = customerDetailJdbcInsert.executeAndReturnKey(customerDataMap(registrationRequest));
@@ -55,7 +78,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 		} catch (Exception e) {
 			response.setRegistrationSuccess(false);
-			throw new CustomerRegistrationException(e);
+			throw new CustomerRegistrationException(e , "registerCustomer");
 		}
 		return response;
 	}
@@ -110,9 +133,17 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 	@Override
 	public boolean resetPassword(String emailId, String newPassword) throws CustomerRegistrationException {
-		throw new CustomerRegistrationException("User is already exist");
-		// TODO Auto-generated method stub
-		// return false;
+		boolean resetPasswordflag = false;
+		try {
+			EncryptionService encryptionService = new EncryptionServiceImpl();
+			String encryptedNewPassword = encryptionService.encryptedValue(newPassword);
+			jdbcTemplate.update("update customer set password=? where email=?",
+					new Object[] { encryptedNewPassword, emailId});
+			resetPasswordflag = true;
+		} catch (Exception e) {
+			throw new CustomerRegistrationException(e, "updatePhoneVerifiedFlag");
+		}
+		return resetPasswordflag;
 	}
 
 	@Override
@@ -120,19 +151,32 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 		RegistrationResponse response = null;
 		try {
-			Object[] loginDetails = new Object[] { emailId, password };
+			Object[] loginDetails = new Object[] { emailId};
 
 			response = jdbcTemplate.queryForObject(
-					"select cust_id, firstname, lastname from customer where email_id=? " + " and password=?",
-					loginDetails, RegistrationResponse.class); // validate this
-																// call. Dont
-																// think so it
-																// will work as
-																// field name is
-																// different
-																// from column
-																// name
-
+					"select cust_id, firstname, lastname,password from customer where email_id=? ",
+					loginDetails, new RowMapper<RegistrationResponse> (){
+						@Override
+						public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+							RegistrationResponse dbResult = null;
+							String encryptedPassword = rs.getString("password");
+							EncryptionService encryption = new EncryptionServiceImpl();
+							try {
+								boolean matched = encryption.validateEncryptedValue(password, encryptedPassword);
+								if (matched) {
+									dbResult = new RegistrationResponse();
+									dbResult.setFirstName(rs.getString("firstname"));
+									dbResult.setLastName(rs.getString("lastName"));
+									dbResult.setCustomerId(rs.getString("cust_id"));
+								}
+							} catch (GoGenieUtilityServiceException e) {
+								dbResult = null;
+								e.printStackTrace();
+							}
+							return dbResult;
+						}
+						
+					}); 
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "validateSecurityQuestions");
 		}
@@ -181,7 +225,18 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
 		RegistrationResponse response = null;
 		try {
-			response = jdbcTemplate.queryForObject("select * from customer where email=?",new Object[]{emailId}, RegistrationResponse.class);
+			response = jdbcTemplate.queryForObject("select * from customer where email=?",new Object[]{emailId}, new RowMapper<RegistrationResponse>() {
+
+				@Override
+				public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+					RegistrationResponse dbResult = new RegistrationResponse();
+					dbResult.setFirstName(rs.getString("firstname"));
+					dbResult.setLastName(rs.getString("lastName"));
+					dbResult.setCustomerId(rs.getString("cust_id"));
+					return dbResult;
+				}
+				
+			});
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "updatePhoneVerifiedFlag");
 		}

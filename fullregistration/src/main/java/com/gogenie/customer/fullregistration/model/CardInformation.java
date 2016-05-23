@@ -24,8 +24,14 @@ public class CardInformation implements Serializable {
 	@JsonProperty("creditcardnumber")
     private String creditcardnumber;
 
+	@JsonProperty("encrypted_creditcardnumber")
+    private String encryptedCreditcardumber;
+
 	@JsonProperty("expirydate")
     private String expirydate;
+
+	@JsonProperty("encrypted_expirydate")
+	private String encryptedExpirydate;
 
 
 	@JsonIgnore
@@ -51,7 +57,26 @@ public class CardInformation implements Serializable {
         this.creditcardnumber = creditcardnumber;
     }
 
-    
+	@JsonProperty("encrypted_creditcardnumber")
+	public String getEncryptedCreditcardumber() {
+		return encryptedCreditcardumber;
+	}
+
+	@JsonProperty("encrypted_creditcardnumber")
+	public void setEncryptedCreditcardumber(String encryptedCreditcardumber) {
+		this.encryptedCreditcardumber = encryptedCreditcardumber;
+	}
+
+	@JsonProperty("encrypted_expirydate")
+	public String getEncryptedExpirydate() {
+		return encryptedExpirydate;
+	}
+
+	@JsonProperty("encrypted_expirydate")
+	public void setEncryptedExpirydate(String encryptedExpirydate) {
+		this.encryptedExpirydate = encryptedExpirydate;
+	}
+	
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);

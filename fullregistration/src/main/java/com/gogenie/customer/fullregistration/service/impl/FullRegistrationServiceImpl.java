@@ -12,6 +12,9 @@ import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 import com.gogenie.customer.fullregistration.service.FullRegistrationService;
 import com.gogenie.customer.fullregistration.util.CustomerRegistrationUtil;
+import com.gogenie.util.exceptiom.GoGenieUtilityServiceException;
+import com.gogenie.util.service.EncryptionService;
+import com.gogenie.util.service.impl.EncryptionServiceImpl;
 
 @Named
 @Service
@@ -66,12 +69,12 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		return securityQuestionValidatedResult;
 	}
 
-	@Override 
+	@Override
 	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
 		RegistrationResponse response = fullRegistrationDao.retrievePhoneVerifiedFlag(emailId);
 		return response;
 	}
-	
+
 	@Override
 	public String updatePhoneVerifiedFlag(String customerId, String phoneverifiedFlag)
 			throws CustomerRegistrationException {

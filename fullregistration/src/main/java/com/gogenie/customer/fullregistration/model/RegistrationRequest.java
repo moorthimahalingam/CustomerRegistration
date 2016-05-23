@@ -37,6 +37,10 @@ public class RegistrationRequest implements Serializable {
     private String email;
     @JsonProperty("password")
     private String password;
+
+    @JsonProperty("encrypted_password")
+    private String encryptedPassword;
+
 	@JsonProperty("mobilephone")
     private String mobilephone;
 	@JsonProperty("workphone")
@@ -250,6 +254,17 @@ public class RegistrationRequest implements Serializable {
 		this.customerId = customerId;
 	}
 
+    @JsonProperty("encrypted_password")
+    public String getEncryptedPassword() {
+		return encryptedPassword;
+	}
+
+    @JsonProperty("encrypted_password")
+	public void setEncryptedPassword(String encryptedPassword) {
+		this.encryptedPassword = encryptedPassword;
+	}
+
+    
 	@Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
