@@ -2,6 +2,7 @@ package com.gogenie.customer.fullregistration.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
@@ -54,31 +55,35 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					String encryptedCardInformation = encryption.encryptedValue(cardInformation.getCreditcardnumber());
 					cardInformation.setEncryptedCreditcardumber(encryptedCardInformation);
 				}
-				
+
 				if (cardInformation.getExpirydate() != null) {
 					String encryptedExpiryDate = encryption.encryptedValue(cardInformation.getExpirydate());
 					cardInformation.setEncryptedExpirydate(encryptedExpiryDate);
 				}
 			}
 			encryption = null;
-			SimpleJdbcInsert customerDetailJdbcInsert = new SimpleJdbcInsert(registrationDataSource);
-			customerDetailJdbcInsert.withTableName("customer").usingGeneratedKeyColumns("cust_id");
-			Number cust_id = customerDetailJdbcInsert.executeAndReturnKey(customerDataMap(registrationRequest));
+			SimpleJdbcCall insertCustomerDetails = new SimpleJdbcCall(registrationDataSource);
+			insertCustomerDetails.withProcedureName("post_customer_detail");
+			Map<String, Object> resultSet = insertCustomerDetails.execute(customerDataMap(registrationRequest));
+			Integer customerId = (Integer) resultSet.get("cust_id");
+			// SimpleJdbcInsert customerDetailJdbcInsert = new
+			// SimpleJdbcInsert(registrationDataSource);
+			// customerDetailJdbcInsert.withTableName("customer").usingGeneratedKeyColumns("cust_id");
+			// Number cust_id =
+			// customerDetailJdbcInsert.executeAndReturnKey(customerDataMap(registrationRequest));
 
-			customerDetailJdbcInsert = new SimpleJdbcInsert(registrationDataSource).withTableName("address_details");
-			customerDetailJdbcInsert
-					.execute(customerAddresDataMap(registrationRequest.getAddress(), cust_id.intValue()));
+			insertCustomerDetails.withProcedureName("post_address_details");
+			insertCustomerDetails.execute(customerAddresDataMap(registrationRequest.getAddress(), customerId));
 
-			customerDetailJdbcInsert = new SimpleJdbcInsert(registrationDataSource).withTableName("card_details");
-
-			customerDetailJdbcInsert.execute(
-					customerCardInformationDataMap(registrationRequest.getCardInformation(), cust_id.intValue()));
+			insertCustomerDetails.withProcedureName("post_cust_payment_info");
+			insertCustomerDetails
+					.execute(customerCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
 
 			response.setRegistrationSuccess(true);
 
 		} catch (Exception e) {
 			response.setRegistrationSuccess(false);
-			throw new CustomerRegistrationException(e , "registerCustomer");
+			throw new CustomerRegistrationException(e, "registerCustomer");
 		}
 		return response;
 	}
@@ -138,7 +143,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			EncryptionService encryptionService = new EncryptionServiceImpl();
 			String encryptedNewPassword = encryptionService.encryptedValue(newPassword);
 			jdbcTemplate.update("update customer set password=? where email=?",
-					new Object[] { encryptedNewPassword, emailId});
+					new Object[] { encryptedNewPassword, emailId });
 			resetPasswordflag = true;
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "updatePhoneVerifiedFlag");
@@ -151,11 +156,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 		RegistrationResponse response = null;
 		try {
-			Object[] loginDetails = new Object[] { emailId};
+			Object[] loginDetails = new Object[] { emailId };
 
 			response = jdbcTemplate.queryForObject(
-					"select cust_id, firstname, lastname,password from customer where email_id=? ",
-					loginDetails, new RowMapper<RegistrationResponse> (){
+					"select cust_id, first_name, last_name,password from customer where email_id=? ", loginDetails,
+					new RowMapper<RegistrationResponse>() {
 						@Override
 						public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
 							RegistrationResponse dbResult = null;
@@ -165,8 +170,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 								boolean matched = encryption.validateEncryptedValue(password, encryptedPassword);
 								if (matched) {
 									dbResult = new RegistrationResponse();
-									dbResult.setFirstName(rs.getString("firstname"));
-									dbResult.setLastName(rs.getString("lastName"));
+									dbResult.setFirstName(rs.getString("first_name"));
+									dbResult.setLastName(rs.getString("last_name"));
 									dbResult.setCustomerId(rs.getString("cust_id"));
 								}
 							} catch (GoGenieUtilityServiceException e) {
@@ -175,8 +180,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							}
 							return dbResult;
 						}
-						
-					}); 
+
+					});
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "validateSecurityQuestions");
 		}
@@ -194,7 +199,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 			Integer customer_id = jdbcTemplate.queryForObject(
 					"select count(*) from customer where cust_id=? "
-							+ " and securityquestion1=? and answer1=? and securityquestion2=? and answer2=?",
+							+ " and security_question1=? and security_answer1=? and security_question2=? and security_answer1=?",
 					validateQuesAndAns, Integer.class);
 
 			if (customer_id != null && customer_id > 0) {
@@ -212,7 +217,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			throws CustomerRegistrationException {
 		String updateStatus = "Failed";
 		try {
-			jdbcTemplate.update("update customer set phone_isValid=? where cust_id=?",
+			jdbcTemplate.update("update customer set phone_isvalid=? where cust_id=?",
 					new Object[] { phoneVerifiedFlag, customerId });
 			updateStatus = "Success";
 		} catch (Exception e) {
@@ -225,33 +230,66 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
 		RegistrationResponse response = null;
 		try {
-			response = jdbcTemplate.queryForObject("select * from customer where email=?",new Object[]{emailId}, new RowMapper<RegistrationResponse>() {
+			response = jdbcTemplate.queryForObject("select * from customer where email=?", new Object[] { emailId },
+					new RowMapper<RegistrationResponse>() {
 
-				@Override
-				public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-					RegistrationResponse dbResult = new RegistrationResponse();
-					dbResult.setFirstName(rs.getString("firstname"));
-					dbResult.setLastName(rs.getString("lastName"));
-					dbResult.setCustomerId(rs.getString("cust_id"));
-					return dbResult;
-				}
-				
-			});
+						@Override
+						public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+							RegistrationResponse dbResult = new RegistrationResponse();
+							dbResult.setFirstName(rs.getString("first_name"));
+							dbResult.setLastName(rs.getString("last_name"));
+							dbResult.setCustomerId(rs.getString("cust_id"));
+							return dbResult;
+						}
+
+					});
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "updatePhoneVerifiedFlag");
 		}
 		return response;
 	}
 
-	private Map<String, String> customerDataMap(RegistrationRequest request) {
-		Map<String, String> customer = new HashMap<>();
+	private Map<String, Object> customerDataMap(RegistrationRequest request) {
+		Map<String, Object> customer = new HashMap<>();
+		customer.put("first_name", request.getFirstname());
+		customer.put("last_name", request.getLastname());
+		customer.put("dob", request.getDateofbirth());
+		customer.put("email", request.getEmail());
+		customer.put("password", request.getEncryptedPassword());
+		customer.put("workphone", request.getWorkphone());
+		customer.put("mobilephone", request.getMobilephone());
+		String phoneIsValidFlag = request.getPhoneValidationFlag();
+		customer.put("phone_isvalid", phoneIsValidFlag);
+
+		if (phoneIsValidFlag != null && phoneIsValidFlag.equals("Y")) {
+			customer.put("cust_isactive", "Y");
+		} else {
+			customer.put("cust_isactive", "N");
+		}
+		customer.put("createddate", new Date());
+		customer.put("createdby", new Integer("12312312"));
+		if (request.getSecurityQuestions() != null) {
+			customer.put("security_question1", request.getSecurityQuestions().getQuestion1());
+			customer.put("security_answer1", request.getSecurityQuestions().getAnswer1());
+			customer.put("security_question2", request.getSecurityQuestions().getQuestion2());
+			customer.put("security_answer2", request.getSecurityQuestions().getAnswer2());
+		}
 
 		return customer;
 	}
 
-	private Map<String, String> customerAddresDataMap(Address address, Integer cust_id) {
-		Map<String, String> addressDetails = new HashMap<>();
-
+	private Map<String, Object> customerAddresDataMap(Address address, Integer cust_id) {
+		Map<String, Object> addressDetails = new HashMap<>();
+		addressDetails.put("cust_id", cust_id);
+		addressDetails.put("country_id", address.getCountry());
+		addressDetails.put("state_id", address.getState());
+		addressDetails.put("city_id", address.getCity());
+		addressDetails.put("address1", address.getAddressline1());
+		addressDetails.put("address2", address.getAddressline2());
+		addressDetails.put("createddate", new Date());
+		addressDetails.put("createdby", new Integer("12312312"));
+		addressDetails.put("zipcode", address.getPostalcode());
+		addressDetails.put("isdefault_address", "Y");
 		return addressDetails;
 	}
 

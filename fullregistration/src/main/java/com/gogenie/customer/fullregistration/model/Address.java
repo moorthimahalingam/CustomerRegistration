@@ -30,10 +30,12 @@ public class Address implements Serializable {
     private String state;
     @JsonProperty("postalcode")
     private String postalcode;
+    @JsonProperty("country")
+    private String country;
     
-    @JsonProperty("defaultAddressFlag")
+	@JsonProperty("defaultAddressFlag")
     private String defaultAddressFlag;
-    	
+    
 
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -138,6 +140,16 @@ public class Address implements Serializable {
         this.postalcode = postalcode;
     }
 
+    @JsonProperty("country")
+    public String getCountry() {
+		return country;
+	}
+
+    @JsonProperty("country")
+	public void setCountry(String country) {
+		this.country = country;
+	}
+    
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
