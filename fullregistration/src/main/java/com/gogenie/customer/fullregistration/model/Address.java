@@ -20,6 +20,9 @@ public class Address implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1668407827289138958L;
+
+	@JsonProperty("addressId")
+	private Integer addressId;
 	@JsonProperty("addressline1")
     private String addressline1;
     @JsonProperty("addressline2")
@@ -164,7 +167,17 @@ public class Address implements Serializable {
 	public void setDefaultAddressFlag(String defaultAddressFlag) {
 		this.defaultAddressFlag = defaultAddressFlag;
 	}
+    
+    @JsonProperty("addressId")
+    public Integer getAddressId() {
+		return addressId;
+	}
 
+    @JsonProperty("addressId")
+	public void setAddressId(Integer addressId) {
+		this.addressId = addressId;
+	}
+    
 	@JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;

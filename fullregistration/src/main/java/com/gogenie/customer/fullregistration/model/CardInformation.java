@@ -33,6 +33,8 @@ public class CardInformation implements Serializable {
 	@JsonProperty("encrypted_expirydate")
 	private String encryptedExpirydate;
 
+	@JsonProperty("Address")
+	private Address address;
 
 	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -91,6 +93,16 @@ public class CardInformation implements Serializable {
     public void setExpirydate(String expirydate) {
     	this.expirydate = expirydate;
     }
+
+	@JsonProperty("Address")
+	public Address getAddress() {
+		return address;
+	}
+
+	@JsonProperty("Address")
+	public void setAddress(Address address) {
+		this.address = address;
+	}
 
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {

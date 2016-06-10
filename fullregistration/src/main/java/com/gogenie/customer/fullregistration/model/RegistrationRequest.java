@@ -59,6 +59,10 @@ public class RegistrationRequest implements Serializable {
 	@JsonProperty("CardInformation")
     private CardInformation CardInformation;
 
+	@JsonProperty("DeviceInfo")
+	private DeviceInfo deviceInfo;
+	
+
 	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -264,7 +268,17 @@ public class RegistrationRequest implements Serializable {
 		this.encryptedPassword = encryptedPassword;
 	}
 
-    
+	@JsonProperty("DeviceInfo")
+	public DeviceInfo getDeviceInfo() {
+		return deviceInfo;
+	}
+
+	@JsonProperty("DeviceInfo")
+	public void setDeviceInfo(DeviceInfo deviceInfo) {
+		this.deviceInfo = deviceInfo;
+	}
+
+	
 	@Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
