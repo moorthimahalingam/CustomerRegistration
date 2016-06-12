@@ -47,17 +47,17 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		try {
 			String password = registrationRequest.getPassword();
 			EncryptionService encryption = new EncryptionServiceImpl();
-			String encryptedPassword = encryption.encryptedValue(password);
+			String encryptedPassword = encryption.hashedValue(password);
 			registrationRequest.setEncryptedPassword(encryptedPassword);
 			CardInformation cardInformation = registrationRequest.getCardInformation();
 			if (cardInformation != null) {
 				if (cardInformation.getCreditcardnumber() != null) {
-					String encryptedCardInformation = encryption.encryptedValue(cardInformation.getCreditcardnumber());
+					String encryptedCardInformation = encryption.hashedValue(cardInformation.getCreditcardnumber());
 					cardInformation.setEncryptedCreditcardumber(encryptedCardInformation);
 				}
 
 				if (cardInformation.getExpirydate() != null) {
-					String encryptedExpiryDate = encryption.encryptedValue(cardInformation.getExpirydate());
+					String encryptedExpiryDate = encryption.hashedValue(cardInformation.getExpirydate());
 					cardInformation.setEncryptedExpirydate(encryptedExpiryDate);
 				}
 			}
@@ -141,7 +141,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		boolean resetPasswordflag = false;
 		try {
 			EncryptionService encryptionService = new EncryptionServiceImpl();
-			String encryptedNewPassword = encryptionService.encryptedValue(newPassword);
+			String encryptedNewPassword = encryptionService.hashedValue(newPassword);
 			jdbcTemplate.update("update customer set password=? where email=?",
 					new Object[] { encryptedNewPassword, emailId });
 			resetPasswordflag = true;
@@ -167,7 +167,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							String encryptedPassword = rs.getString("password");
 							EncryptionService encryption = new EncryptionServiceImpl();
 							try {
-								boolean matched = encryption.validateEncryptedValue(password, encryptedPassword);
+								boolean matched = encryption.validateHashedValue(password, encryptedPassword);
 								if (matched) {
 									dbResult = new RegistrationResponse();
 									dbResult.setFirstName(rs.getString("first_name"));
