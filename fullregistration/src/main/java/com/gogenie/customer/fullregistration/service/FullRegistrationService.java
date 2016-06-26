@@ -17,7 +17,7 @@ public interface FullRegistrationService {
 
 	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException;
 
-	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException; 
+	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
 	
 	public String updatePhoneVerifiedFlag(String customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	

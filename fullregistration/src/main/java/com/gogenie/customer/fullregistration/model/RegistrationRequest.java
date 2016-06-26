@@ -27,8 +27,6 @@ public class RegistrationRequest implements Serializable {
 
 	@JsonProperty("firstname")
     private String firstname;
-//    @JsonProperty("middle")
-//    private String middle;
     @JsonProperty("lastname")
     private String lastname;
     @JsonProperty("dateofbirth")
@@ -38,7 +36,7 @@ public class RegistrationRequest implements Serializable {
     @JsonProperty("password")
     private String password;
 
-    @JsonProperty("encrypted_password")
+//    @JsonProperty("encrypted_password")
     private String encryptedPassword;
 
 	@JsonProperty("mobilephone")
@@ -258,12 +256,12 @@ public class RegistrationRequest implements Serializable {
 		this.customerId = customerId;
 	}
 
-    @JsonProperty("encrypted_password")
+//    @JsonProperty("encrypted_password")
     public String getEncryptedPassword() {
 		return encryptedPassword;
 	}
 
-    @JsonProperty("encrypted_password")
+//    @JsonProperty("encrypted_password")
 	public void setEncryptedPassword(String encryptedPassword) {
 		this.encryptedPassword = encryptedPassword;
 	}
