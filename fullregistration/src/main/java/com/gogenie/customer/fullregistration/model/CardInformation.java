@@ -23,16 +23,26 @@ public class CardInformation implements Serializable {
 	
 	@JsonProperty("creditcardnumber")
     private String creditcardnumber;
-
-//	@JsonProperty("encrypted_creditcardnumber")
+	
     private String encryptedCreditcardumber;
 
 	@JsonProperty("expirydate")
     private String expirydate;
 
-//	@JsonProperty("encrypted_expirydate")
 	private String encryptedExpirydate;
 
+	@JsonProperty("payment_type")
+	private String paymentType;
+	
+	@JsonProperty("cvv_number")
+	private Integer cvvNumber;
+	
+	private String encryptedCVVNumber;
+	
+	@JsonProperty("name_on_card")
+	private String nameOnCard;
+	
+	
 	@JsonProperty("Address")
 	private Address address;
 
@@ -104,7 +114,45 @@ public class CardInformation implements Serializable {
 		this.address = address;
 	}
 
-    @JsonAnyGetter
+	@JsonProperty("payment_type")
+    public String getPaymentType() {
+		return paymentType;
+	}
+
+	@JsonProperty("payment_type")
+	public void setPaymentType(String paymentType) {
+		this.paymentType = paymentType;
+	}
+
+	@JsonProperty("cvv_number")
+	public Integer getCvvNumber() {
+		return cvvNumber;
+	}
+
+	@JsonProperty("cvv_number")
+	public void setCvvNumber(Integer cvvNumber) {
+		this.cvvNumber = cvvNumber;
+	}
+
+	public String getEncryptedCVVNumber() {
+		return encryptedCVVNumber;
+	}
+
+	public void setEncryptedCVVNumber(String encryptedCVVNumber) {
+		this.encryptedCVVNumber = encryptedCVVNumber;
+	}
+
+	@JsonProperty("name_on_card")
+	public String getNameOnCard() {
+		return nameOnCard;
+	}
+
+	@JsonProperty("name_on_card")
+	public void setNameOnCard(String nameOnCard) {
+		this.nameOnCard = nameOnCard;
+	}
+
+	@JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }

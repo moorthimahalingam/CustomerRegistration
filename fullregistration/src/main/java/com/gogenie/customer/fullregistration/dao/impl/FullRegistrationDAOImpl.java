@@ -2,6 +2,7 @@ package com.gogenie.customer.fullregistration.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
@@ -34,17 +38,19 @@ import com.gogenie.util.service.impl.EncryptionServiceImpl;
 public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 	Logger logger = LoggerFactory.getLogger(FullRegistrationDAOImpl.class);
-	
+
 	@Resource
 	private DataSource gogenieDataSource;
-	
+
 	private JdbcTemplate jdbcTemplate;
 	private SimpleJdbcCall simpleJdbcCall;
-	
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
 	@PostConstruct
 	public void initialize() {
 		this.jdbcTemplate = new JdbcTemplate(gogenieDataSource);
 		simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+		namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(gogenieDataSource);
 	}
 
 	@Override
@@ -52,6 +58,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			throws CustomerRegistrationException {
 		logger.debug("Entering into registerCustomer()");
 		RegistrationResponse response = new RegistrationResponse();
+		Long customerId = null;
 		try {
 			String password = registrationRequest.getPassword();
 			EncryptionService encryption = new EncryptionServiceImpl();
@@ -59,42 +66,78 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			String encryptedPassword = encryption.hashedValue(password);
 			registrationRequest.setEncryptedPassword(encryptedPassword);
 			logger.debug("password hashed successfully ");
-			CardInformation cardInformation = registrationRequest.getCardInformation();
-			
-			if (cardInformation != null) {
-				logger.debug("Hashed service execution for Card Information ");
-				if (cardInformation.getCreditcardnumber() != null) {
-					String encryptedCardInformation = encryption.hashedValue(cardInformation.getCreditcardnumber());
-					cardInformation.setEncryptedCreditcardumber(encryptedCardInformation);
-				}
 
-				if (cardInformation.getExpirydate() != null) {
-					String encryptedExpiryDate = encryption.hashedValue(cardInformation.getExpirydate());
-					cardInformation.setEncryptedExpirydate(encryptedExpiryDate);
-				}
-				logger.debug("CardInformation hashed successfully ");
-			}
 			encryption = null;
-			simpleJdbcCall.withProcedureName("post_customer_detail");
+			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
+					.declareParameters(new SqlParameter("first_name", Types.VARCHAR),
+							new SqlParameter("last_name", Types.VARCHAR), new SqlParameter("dob", Types.DATE),
+							new SqlParameter("email", Types.VARCHAR), new SqlParameter("password", Types.VARCHAR),
+							new SqlParameter("workphone", Types.VARCHAR),
+							new SqlParameter("mobilephone", Types.VARCHAR),
+							new SqlParameter("phone_isvalid", Types.BIT), new SqlParameter("cust_isactive", Types.BIT),
+							new SqlParameter("createddate", Types.DATE), new SqlParameter("createdby", Types.BIGINT),
+							new SqlParameter("security_question1", Types.VARCHAR),
+							new SqlParameter("security_answer1", Types.VARCHAR),
+							new SqlParameter("security_question2", Types.VARCHAR),
+							new SqlParameter("security_answer2", Types.VARCHAR),
+							new SqlOutParameter("error_status", Types.VARCHAR),
+							new SqlOutParameter("returnCustId", Types.BIGINT));
+
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
-			Integer customerId = (Integer) resultSet.get("cust_id");
+
+			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+
+			customerId = (Long) resultSet.get("returnCustId");
+
 			logger.debug("Customer table data has been executed successfully {} ", customerId);
+
 			if (registrationRequest.getAddress() != null) {
-				simpleJdbcCall.withProcedureName("post_address_details");
-				simpleJdbcCall.execute(customerAddresDataMap(registrationRequest.getAddress(), customerId));
+				simpleJdbcCall.withProcedureName("post_address_details").withoutProcedureColumnMetaDataAccess()
+						.declareParameters(new SqlParameter("cust_id", Types.BIGINT),
+								new SqlParameter("country_id", Types.BIGINT),
+								new SqlParameter("state_id", Types.BIGINT), new SqlParameter("city_id", Types.BIGINT),
+								new SqlParameter("address1", Types.VARCHAR),
+								new SqlParameter("address2", Types.VARCHAR),
+								new SqlParameter("createdby", Types.INTEGER),
+								new SqlParameter("createddate", Types.DATE), new SqlParameter("zipcode", Types.VARCHAR),
+								new SqlParameter("isdefault_address", Types.BIT),
+								new SqlOutParameter("error_status", Types.VARCHAR));
+
+				Map<String, Object> addressResult = simpleJdbcCall
+						.execute(customerAddresDataMap(registrationRequest.getAddress(), customerId));
+				logger.debug("Address details insert {} result ", addressResult.toString());
 				logger.debug("Address table data has been executed successfully {} ", customerId);
 			}
-			
+
 			if (registrationRequest.getCardInformation() != null) {
-				simpleJdbcCall.withProcedureName("post_cust_payment_info");
-				simpleJdbcCall
+				simpleJdbcCall.withProcedureName("post_cust_payment_info").withoutProcedureColumnMetaDataAccess()
+						.declareParameters(new SqlParameter("cust_id", Types.BIGINT),
+								new SqlParameter("payementtype", Types.VARCHAR),
+								new SqlParameter("cardnumber", Types.VARCHAR),
+								new SqlParameter("expirydate", Types.VARCHAR),
+								new SqlParameter("cvv_number", Types.VARCHAR),
+								new SqlParameter("name_on_card", Types.VARCHAR),
+								new SqlParameter("createdby", Types.BIGINT),
+								new SqlParameter("createddate", Types.DATE),
+								new SqlParameter("address1", Types.VARCHAR),
+								new SqlParameter("address2", Types.VARCHAR), new SqlParameter("city_id", Types.BIGINT),
+								new SqlParameter("state_id", Types.BIGINT),
+								new SqlParameter("country_id", Types.BIGINT),
+								new SqlParameter("zipcode", Types.VARCHAR),
+								new SqlOutParameter("error_status", Types.VARCHAR));
+				Map<String, Object> cardInsertResult = simpleJdbcCall
 						.execute(customerCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
-				logger.debug("Card information	 table data has been executed successfully {} ", customerId);
+				logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
+
+				logger.debug("Card information table data has been executed successfully {} ", customerId);
 			}
 			response.setRegistrationSuccess(true);
 
 		} catch (Exception e) {
 			response.setRegistrationSuccess(false);
+			if (customerId != null && customerId.longValue() > 0) {
+				logger.debug("Rollback the current transaction ");
+			}
 			throw new CustomerRegistrationException(e, "111111");
 		}
 		logger.debug("Exiting from registerCustomer()");
@@ -107,16 +150,17 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		boolean isCustomerExist = false;
 		try {
 			Integer customer_id = jdbcTemplate.query("select cust_id from customer where email=?",
-					new Object[] { emailId }, new ResultSetExtractor<Integer>(){
+					new Object[] { emailId }, new ResultSetExtractor<Integer>() {
 						@Override
 						public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
 							Integer customerId = null;
 							while (rs.next()) {
-								customerId= rs.getInt("cust_id");
+								customerId = rs.getInt("cust_id");
 							}
 							logger.debug("Customer id {} for the email id is {} ", customerId, emailId);
 							return customerId;
-						}});
+						}
+					});
 			if (customer_id != null) {
 				isCustomerExist = true;
 			}
@@ -191,7 +235,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 									dbResult = new RegistrationResponse();
 									dbResult.setFirstName(rs.getString("first_name"));
 									dbResult.setLastName(rs.getString("last_name"));
-									dbResult.setCustomerId(rs.getString("cust_id"));
+									dbResult.setCustomerId(rs.getLong("cust_id"));
 								}
 							} catch (GoGenieUtilityServiceException e) {
 								dbResult = null;
@@ -233,7 +277,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	}
 
 	@Override
-	public String updatePhoneVerifiedFlag(String customerId, String phoneVerifiedFlag)
+	public String updatePhoneVerifiedFlag(Long customerId, String phoneVerifiedFlag)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneVerifiedFlag()");
 		String updateStatus = "Failed";
@@ -261,7 +305,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							RegistrationResponse dbResult = new RegistrationResponse();
 							dbResult.setFirstName(rs.getString("firstname"));
 							dbResult.setLastName(rs.getString("lastname"));
-							dbResult.setCustomerId(rs.getString("cust_id"));
+							dbResult.setCustomerId(rs.getLong("cust_id"));
 							return dbResult;
 						}
 
@@ -276,34 +320,35 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	private Map<String, Object> customerDataMap(RegistrationRequest request) {
 		logger.debug("Entering into customerDataMap()");
 		Map<String, Object> customer = new HashMap<>();
-		customer.put("FIRSTNAME", request.getFirstname());
-		customer.put("LASTNAME", request.getLastname());
-		customer.put("DATEOFBIRTH", request.getDateofbirth());
-		customer.put("EMAIL", request.getEmail());
-		customer.put("PASSWORD", request.getEncryptedPassword());
-		customer.put("WORKPHONE", request.getWorkphone());
-		customer.put("MOBILEPHONE", request.getMobilephone());
+		customer.put("first_name", request.getFirstname());
+		customer.put("last_name", request.getLastname());
+		customer.put("dob", request.getDateofbirth());
+		customer.put("email", request.getEmail());
+		customer.put("password", request.getEncryptedPassword());
+		customer.put("workphone", request.getWorkphone());
+		customer.put("mobilephone", request.getMobilephone());
 		String phoneIsValidFlag = request.getPhoneValidationFlag();
-		customer.put("PHONE_ISVALID", phoneIsValidFlag);
-
 		if (phoneIsValidFlag != null && phoneIsValidFlag.equals("Y")) {
-			customer.put("CUST_ISACTIVE", "Y");
+			customer.put("phone_isvalid", 1);
+			customer.put("cust_isactive", 1);
 		} else {
-			customer.put("CUST_ISACTIVE", "N");
+			customer.put("phone_isvalid", 0);
+			customer.put("cust_isactive", 0);
 		}
-		customer.put("CREATEDDATE", new Date());
-		customer.put("CREATEDBY", new Integer("12312312"));
+		customer.put("createddate", new java.sql.Date(new Date().getTime()));
+		customer.put("createdby", 12312312);
 		if (request.getSecurityQuestions() != null) {
-			customer.put("SECURITY_QUESTION1", request.getSecurityQuestions().getQuestion1());
-			customer.put("SECURITY_ANSWER1", request.getSecurityQuestions().getAnswer1());
-			customer.put("SECURITY_QUESTION2", request.getSecurityQuestions().getQuestion2());
-			customer.put("SECURITY_ANSWER2", request.getSecurityQuestions().getAnswer2());
+			customer.put("security_question1", request.getSecurityQuestions().getQuestion1());
+			customer.put("security_answer1", request.getSecurityQuestions().getAnswer1());
+			customer.put("security_question2", request.getSecurityQuestions().getQuestion2());
+			customer.put("security_answer2", request.getSecurityQuestions().getAnswer2());
 		}
+		logger.debug("Input parameter values are {} ", customer.toString());
 		logger.debug("Exiting from customerDataMap()");
 		return customer;
 	}
 
-	private Map<String, Object> customerAddresDataMap(Address address, Integer custId) {
+	private Map<String, Object> customerAddresDataMap(Address address, Long custId) {
 		logger.debug("Entering into customerAddresDataMap()");
 		Map<String, Object> addressDetails = new HashMap<>();
 		addressDetails.put("cust_id", custId);
@@ -312,26 +357,25 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		addressDetails.put("city_id", address.getCity());
 		addressDetails.put("address1", address.getAddressline1());
 		addressDetails.put("address2", address.getAddressline2());
-		addressDetails.put("createddate", new Date());
-		addressDetails.put("createdby", new Integer("12312312"));
+		addressDetails.put("createddate", new java.sql.Date(new Date().getTime()));
+		addressDetails.put("createdby", 12312312);
 		addressDetails.put("zipcode", address.getPostalcode());
 		addressDetails.put("isdefault_address", "Y");
 		logger.debug("Exiting from customerAddresDataMap()");
 		return addressDetails;
 	}
 
-	private Map<String, Object> customerCardInformationDataMap(CardInformation cardInformation, Integer custId) {
+	private Map<String, Object> customerCardInformationDataMap(CardInformation cardInformation, Long custId) {
 		logger.debug("Entering into customerCardInformationDataMap()");
 		Map<String, Object> cardDetails = new HashMap<>();
 		cardDetails.put("cust_id", custId);
-		cardDetails.put("", custId);
-		cardDetails.put("paymenttype", custId);
-		cardDetails.put("cardnumber", custId);
-		cardDetails.put("expirydate", custId);
-		cardDetails.put("cvv_number", custId);
-		cardDetails.put("name_on_card", custId);
-		cardDetails.put("createddate", new Date());
-		cardDetails.put("createdby", new Integer("12312312"));
+		cardDetails.put("paymenttype", cardInformation.getPaymentType());
+		cardDetails.put("cardnumber", cardInformation.getCreditcardnumber());
+		cardDetails.put("expirydate", cardInformation.getExpirydate());
+		cardDetails.put("cvv_number", cardInformation.getCvvNumber());
+		cardDetails.put("name_on_card", cardInformation.getNameOnCard());
+		cardDetails.put("createddate", new java.sql.Date(new Date().getTime()));
+		cardDetails.put("createdby", 12312312);
 		Address billingAddress = cardInformation.getAddress();
 		if (billingAddress != null) {
 			cardDetails.put("address1", billingAddress.getAddressline1());

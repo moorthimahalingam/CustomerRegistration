@@ -2,6 +2,7 @@
 package com.gogenie.customer.fullregistration.model;
 
 import java.io.Serializable;
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,14 +24,14 @@ public class RegistrationRequest implements Serializable {
 	private static final long serialVersionUID = 6745458098444463847L;
 
 	@JsonProperty("customer_id")
-    private String customerId;
+    private Long customerId;
 
 	@JsonProperty("firstname")
     private String firstname;
     @JsonProperty("lastname")
     private String lastname;
     @JsonProperty("dateofbirth")
-    private String dateofbirth;
+    private Date dateofbirth;
     @JsonProperty("email")
     private String email;
     @JsonProperty("password")
@@ -86,12 +87,12 @@ public class RegistrationRequest implements Serializable {
 
     
     @JsonProperty("dateofbirth")
-    public String getDateofbirth() {
+    public Date getDateofbirth() {
 		return dateofbirth;
 	}
 
     @JsonProperty("dateofbirth")
-	public void setDateofbirth(String dateofbirth) {
+	public void setDateofbirth(Date dateofbirth) {
 		this.dateofbirth = dateofbirth;
 	}
 
@@ -247,12 +248,12 @@ public class RegistrationRequest implements Serializable {
 	}
 
     @JsonProperty("customer_id")
-    public String getCustomerId() {
+    public Long getCustomerId() {
 		return customerId;
 	}
 
     @JsonProperty("customer_id")
-	public void setCustomerId(String customerId) {
+	public void setCustomerId(Long customerId) {
 		this.customerId = customerId;
 	}
 

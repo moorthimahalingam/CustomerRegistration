@@ -20,7 +20,7 @@ public class RegistrationResponse implements Serializable {
 	private String responseText;
 
 	@JsonProperty("customer_id")
-	private String customerId;
+	private Long customerId;
 
 	@JsonProperty("firstName")
 	private String firstName;
@@ -56,12 +56,12 @@ public class RegistrationResponse implements Serializable {
 	}
 
 	@JsonProperty("customer_id")
-	public String getCustomerId() {
+	public Long getCustomerId() {
 		return customerId;
 	}
 
 	@JsonProperty("customer_id")
-	public void setCustomerId(String customerId) {
+	public void setCustomerId(Long customerId) {
 		this.customerId = customerId;
 	}
 
