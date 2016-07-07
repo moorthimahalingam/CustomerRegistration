@@ -22,4 +22,9 @@ public interface FullRegistrationDAO {
 	public String updatePhoneVerifiedFlag(Long customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	
 	public boolean resetPassword(String emailId, String newPassword) throws CustomerRegistrationException ;
+	
+	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
+	
+	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId) throws CustomerRegistrationException;
+	
 }

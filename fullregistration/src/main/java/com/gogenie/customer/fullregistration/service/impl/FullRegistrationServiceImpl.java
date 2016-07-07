@@ -106,4 +106,21 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		logger.debug("Exiting from updatePhoneVerifiedFlag()");
 		return phoneFlagUpdatedText;
 	}
+
+	@Override
+	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
+		logger.debug("Entering into updateCustomerDetails()");
+		String response = fullRegistrationDao.updateCustomerDetails(registrationRequest);
+		logger.debug("Exiting from updateCustomerDetails()");
+		return response;
+	}
+
+	@Override
+	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into updateCustomerDefaultAddress()");
+		
+		logger.debug("Exiting from updateCustomerDefaultAddress()");
+		return null;
+	}
 }

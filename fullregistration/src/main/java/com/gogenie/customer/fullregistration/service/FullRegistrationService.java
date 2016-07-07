@@ -23,4 +23,8 @@ public interface FullRegistrationService {
 	
 	public boolean resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException;
 	
+	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
+	
+	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId) throws CustomerRegistrationException;
+	
 }

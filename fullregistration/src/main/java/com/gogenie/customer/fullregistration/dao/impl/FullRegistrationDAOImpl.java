@@ -19,7 +19,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
@@ -44,13 +43,13 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 	private JdbcTemplate jdbcTemplate;
 	private SimpleJdbcCall simpleJdbcCall;
-	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+//	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@PostConstruct
 	public void initialize() {
 		this.jdbcTemplate = new JdbcTemplate(gogenieDataSource);
-		simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-		namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(gogenieDataSource);
+		this.simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+//		namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(gogenieDataSource);
 	}
 
 	@Override
@@ -69,13 +68,15 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 			encryption = null;
 			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
-					.declareParameters(new SqlParameter("first_name", Types.VARCHAR),
-							new SqlParameter("last_name", Types.VARCHAR), new SqlParameter("dob", Types.DATE),
+					.declareParameters(
+							new SqlParameter("cust_id", Types.BIGINT),
+							new SqlParameter("firstname", Types.VARCHAR),
+							new SqlParameter("lastname", Types.VARCHAR), new SqlParameter("dateofbirth", Types.DATE),
 							new SqlParameter("email", Types.VARCHAR), new SqlParameter("password", Types.VARCHAR),
 							new SqlParameter("workphone", Types.VARCHAR),
 							new SqlParameter("mobilephone", Types.VARCHAR),
 							new SqlParameter("phone_isvalid", Types.BIT), new SqlParameter("cust_isactive", Types.BIT),
-							new SqlParameter("createddate", Types.DATE), new SqlParameter("createdby", Types.BIGINT),
+							new SqlParameter("updateddate", Types.DATE), new SqlParameter("updatedby", Types.BIGINT),
 							new SqlParameter("security_question1", Types.VARCHAR),
 							new SqlParameter("security_answer1", Types.VARCHAR),
 							new SqlParameter("security_question2", Types.VARCHAR),
@@ -151,7 +152,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		try {
 			Integer customer_id = jdbcTemplate.query("select cust_id from customer where email=?",
 					new Object[] { emailId }, new ResultSetExtractor<Integer>() {
-						@Override
 						public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
 							Integer customerId = null;
 							while (rs.next()) {
@@ -348,6 +348,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customer;
 	}
 
+	
+	
 	private Map<String, Object> customerAddresDataMap(Address address, Long custId) {
 		logger.debug("Entering into customerAddresDataMap()");
 		Map<String, Object> addressDetails = new HashMap<>();
@@ -388,6 +390,102 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		}
 		logger.debug("Exiting from customerCardInformationDataMap()");
 		return cardDetails;
+	}
+
+	@Override
+	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
+		logger.debug("Entering into updateCustomerDetails()");
+		String response = null;
+		try {
+			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
+			.declareParameters(new SqlParameter("first_name", Types.VARCHAR),
+					new SqlParameter("last_name", Types.VARCHAR), new SqlParameter("dob", Types.DATE),
+					new SqlParameter("email", Types.VARCHAR), new SqlParameter("password", Types.VARCHAR),
+					new SqlParameter("workphone", Types.VARCHAR),
+					new SqlParameter("mobilephone", Types.VARCHAR),
+					new SqlParameter("phone_isvalid", Types.BIT), new SqlParameter("cust_isactive", Types.BIT),
+					new SqlParameter("createddate", Types.DATE), new SqlParameter("createdby", Types.BIGINT),
+					new SqlParameter("security_question1", Types.VARCHAR),
+					new SqlParameter("security_answer1", Types.VARCHAR),
+					new SqlParameter("security_question2", Types.VARCHAR),
+					new SqlParameter("security_answer2", Types.VARCHAR),
+					new SqlOutParameter("error_status", Types.VARCHAR),
+					new SqlOutParameter("returnCustId", Types.BIGINT));
+			
+			String password = registrationRequest.getPassword();
+			EncryptionService encryption = new EncryptionServiceImpl();
+			logger.debug("Hashed service execution for password");
+			String encryptedPassword = encryption.hashedValue(password);
+			registrationRequest.setEncryptedPassword(encryptedPassword);
+			logger.debug("password hashed successfully ");
+			Map<String, Object> resultSet = simpleJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
+			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+			response = resultSet.toString();
+		} catch (Exception e) {
+			throw new CustomerRegistrationException(e, "updateCustomerDetails");
+		}
+		
+		logger.debug("Entering into updateCustomerDetails()");
+		return response;
+	}
+	
+	private Map<String, Object> customerUpdatedDataMap(RegistrationRequest request) {
+		logger.debug("Entering into customerUpdatedDataMap()");
+		Map<String, Object> customer = new HashMap<>();
+		customer.put("cust_id", request.getCustomerId());
+		customer.put("firstname", request.getFirstname());
+		customer.put("lastname", request.getLastname());
+		customer.put("dateofbirth", request.getDateofbirth());
+		customer.put("email", request.getEmail());
+		customer.put("password", request.getEncryptedPassword());
+		customer.put("workphone", request.getWorkphone());
+		customer.put("mobilephone", request.getMobilephone());
+		String phoneIsValidFlag = request.getPhoneValidationFlag();
+		if (phoneIsValidFlag != null && phoneIsValidFlag.equals("Y")) {
+			customer.put("phone_isvalid", 1);
+			customer.put("cust_isactive", 1);
+		} else {
+			customer.put("phone_isvalid", 0);
+			customer.put("cust_isactive", 0);
+		}
+		customer.put("updateddate", new java.sql.Date(new Date().getTime()));
+		customer.put("updatedby", 12312312);
+		if (request.getSecurityQuestions() != null) {
+			customer.put("security_question1", request.getSecurityQuestions().getQuestion1());
+			customer.put("security_answer1", request.getSecurityQuestions().getAnswer1());
+			customer.put("security_question2", request.getSecurityQuestions().getQuestion2());
+			customer.put("security_answer2", request.getSecurityQuestions().getAnswer2());
+		}
+		logger.debug("Input parameter values are {} ", customer.toString());
+		logger.debug("Exiting from customerUpdatedDataMap()");
+		return customer;
+	}
+
+	@Override
+	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into updateCustomerDefaultAddress()");
+		String response = null;
+		try {
+			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
+			.declareParameters(new SqlParameter("address_details_id", Types.BIGINT),
+					new SqlParameter("cust_id", Types.BIGINT),
+					new SqlParameter("updateddate" , Types.DATE),
+					new SqlParameter("updatedby" , Types.BIGINT),
+					new SqlParameter("isdefault_address", Types.BIT));
+			Map<String, Object> updateDefaultAdrMap = new HashMap<String, Object>();
+			updateDefaultAdrMap.put("address_details_id", addressDetailId);
+			updateDefaultAdrMap.put("cust_id", customerId);
+			updateDefaultAdrMap.put("updateddate", new java.sql.Date(new Date().getTime()));
+			updateDefaultAdrMap.put("updatedby", 12313123);
+			updateDefaultAdrMap.put("isdefault_address", "Y");
+			simpleJdbcCall.execute(updateDefaultAdrMap);
+			response = "successfully updated";
+		} catch (Exception e) {
+			throw new CustomerRegistrationException(e, "updateCustomerDefaultAddress");
+		}
+		logger.debug("Exiting from updateCustomerDefaultAddress()");
+		return response;
 	}
 
 }

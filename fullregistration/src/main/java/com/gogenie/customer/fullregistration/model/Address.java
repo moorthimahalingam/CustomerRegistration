@@ -22,7 +22,7 @@ public class Address implements Serializable {
 	private static final long serialVersionUID = 1668407827289138958L;
 
 	@JsonProperty("addressId")
-	private Integer addressId;
+	private Long addressId;
 	@JsonProperty("addressline1")
     private String addressline1;
     @JsonProperty("addressline2")
@@ -169,12 +169,12 @@ public class Address implements Serializable {
 	}
     
     @JsonProperty("addressId")
-    public Integer getAddressId() {
+    public Long getAddressId() {
 		return addressId;
 	}
 
     @JsonProperty("addressId")
-	public void setAddressId(Integer addressId) {
+	public void setAddressId(Long addressId) {
 		this.addressId = addressId;
 	}
     
