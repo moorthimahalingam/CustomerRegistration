@@ -28,13 +28,13 @@ public class Address implements Serializable {
     @JsonProperty("addressline2")
     private String addressline2;
     @JsonProperty("city")
-    private String city;
+    private Integer city;
     @JsonProperty("state")
-    private String state;
+    private Integer state;
     @JsonProperty("postalcode")
     private String postalcode;
     @JsonProperty("country")
-    private String country;
+    private Integer country;
     
 	@JsonProperty("defaultAddressFlag")
     private String defaultAddressFlag;
@@ -89,7 +89,7 @@ public class Address implements Serializable {
      *     The city
      */
     @JsonProperty("city")
-    public String getCity() {
+    public Integer getCity() {
         return city;
     }
 
@@ -99,7 +99,7 @@ public class Address implements Serializable {
      *     The city
      */
     @JsonProperty("city")
-    public void setCity(String city) {
+    public void setCity(Integer city) {
         this.city = city;
     }
 
@@ -109,7 +109,7 @@ public class Address implements Serializable {
      *     The state
      */
     @JsonProperty("state")
-    public String getState() {
+    public Integer getState() {
         return state;
     }
 
@@ -119,7 +119,7 @@ public class Address implements Serializable {
      *     The state
      */
     @JsonProperty("state")
-    public void setState(String state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
@@ -144,12 +144,12 @@ public class Address implements Serializable {
     }
 
     @JsonProperty("country")
-    public String getCountry() {
+    public Integer getCountry() {
 		return country;
 	}
 
     @JsonProperty("country")
-	public void setCountry(String country) {
+	public void setCountry(Integer country) {
 		this.country = country;
 	}
     

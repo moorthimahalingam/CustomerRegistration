@@ -24,7 +24,7 @@ public class RegistrationRequest implements Serializable {
 	private static final long serialVersionUID = 6745458098444463847L;
 
 	@JsonProperty("customer_id")
-    private Long customerId;
+    private Integer customerId;
 
 	@JsonProperty("firstname")
     private String firstname;
@@ -248,12 +248,12 @@ public class RegistrationRequest implements Serializable {
 	}
 
     @JsonProperty("customer_id")
-    public Long getCustomerId() {
+    public Integer getCustomerId() {
 		return customerId;
 	}
 
     @JsonProperty("customer_id")
-	public void setCustomerId(Long customerId) {
+	public void setCustomerId(Integer customerId) {
 		this.customerId = customerId;
 	}
 

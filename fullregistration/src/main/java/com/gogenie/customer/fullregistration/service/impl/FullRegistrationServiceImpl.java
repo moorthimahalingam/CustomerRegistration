@@ -116,11 +116,11 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId)
+	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDefaultAddress()");
-		
+		String response = fullRegistrationDao.updateCustomerDefaultAddress(addressDetailId, customerId);
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
-		return null;
+		return response;
 	}
 }

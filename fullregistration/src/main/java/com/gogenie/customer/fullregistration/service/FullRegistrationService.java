@@ -25,6 +25,6 @@ public interface FullRegistrationService {
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
-	public String updateCustomerDefaultAddress(Long addressDetailId, Long customerId) throws CustomerRegistrationException;
+	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId) throws CustomerRegistrationException;
 	
 }
