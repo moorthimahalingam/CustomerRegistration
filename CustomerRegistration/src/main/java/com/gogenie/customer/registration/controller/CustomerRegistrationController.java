@@ -117,7 +117,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
-	public String updatePhoneValidationFlag(@RequestParam(value = "customer_id") Long customerId,
+	public String updatePhoneValidationFlag(@RequestParam(value = "customer_id") Integer customerId,
 			@RequestParam(value = "phoneVerificationFlag") String verifiedFlag) throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneValidationFlag()");
 		String response = registrationService.updatePhoneVerifiedFlag(customerId, verifiedFlag);

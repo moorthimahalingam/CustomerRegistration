@@ -99,7 +99,7 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public String updatePhoneVerifiedFlag(Long customerId, String phoneverifiedFlag)
+	public String updatePhoneVerifiedFlag(Integer customerId, String phoneverifiedFlag)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneVerifiedFlag()");
 		String phoneFlagUpdatedText = fullRegistrationDao.updatePhoneVerifiedFlag(customerId, phoneverifiedFlag);

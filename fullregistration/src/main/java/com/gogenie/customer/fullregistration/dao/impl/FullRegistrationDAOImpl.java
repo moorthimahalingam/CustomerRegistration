@@ -287,7 +287,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	}
 
 	@Override
-	public String updatePhoneVerifiedFlag(Long customerId, String phoneVerifiedFlag)
+	public String updatePhoneVerifiedFlag(Integer customerId, String phoneVerifiedFlag)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneVerifiedFlag()");
 		String updateStatus = "Failed";

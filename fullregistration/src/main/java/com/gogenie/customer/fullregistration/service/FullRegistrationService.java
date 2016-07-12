@@ -19,7 +19,7 @@ public interface FullRegistrationService {
 
 	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
 	
-	public String updatePhoneVerifiedFlag(Long customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
+	public String updatePhoneVerifiedFlag(Integer customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	
 	public boolean resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException;
 	
