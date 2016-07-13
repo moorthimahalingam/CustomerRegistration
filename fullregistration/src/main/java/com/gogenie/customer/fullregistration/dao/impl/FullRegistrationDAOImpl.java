@@ -19,6 +19,9 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
@@ -26,9 +29,11 @@ import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
+import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
+import com.gogenie.customer.fullregistration.util.CustomerDetailsExtractor;
 import com.gogenie.util.constants.CustomerConstants;
 import com.gogenie.util.exceptiom.GoGenieUtilityServiceException;
 import com.gogenie.util.service.EncryptionService;
@@ -44,14 +49,13 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 	private JdbcTemplate jdbcTemplate;
 	private SimpleJdbcCall simpleJdbcCall;
-	// private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@PostConstruct
 	public void initialize() {
 		this.jdbcTemplate = new JdbcTemplate(gogenieDataSource);
 		this.simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-		// namedParameterJdbcTemplate = new
-		// NamedParameterJdbcTemplate(gogenieDataSource);
+		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(gogenieDataSource);
 	}
 
 	@Override
@@ -406,20 +410,16 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		String response = null;
 		try {
 			simpleJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
-					.declareParameters(
-							new SqlParameter("cu_id", Types.INTEGER),
-							new SqlParameter("first_name", Types.VARCHAR),
-							new SqlParameter("last_name", Types.VARCHAR), new SqlParameter("dob", Types.DATE),
-							new SqlParameter("e_mail", Types.VARCHAR), new SqlParameter("pswd", Types.VARCHAR),
-							new SqlParameter("wrkphone", Types.VARCHAR),
-							new SqlParameter("mobphone", Types.VARCHAR),
-							new SqlParameter("ph_isvalid", Types.BIT), new SqlParameter("cu_isactive", Types.BIT),
-							new SqlParameter("up_date", Types.DATE), new SqlParameter("up_by", Types.BIGINT),
-							new SqlParameter("security_quest1", Types.VARCHAR),
+					.declareParameters(new SqlParameter("cu_id", Types.INTEGER),
+							new SqlParameter("first_name", Types.VARCHAR), new SqlParameter("last_name", Types.VARCHAR),
+							new SqlParameter("dob", Types.DATE), new SqlParameter("e_mail", Types.VARCHAR),
+							new SqlParameter("pswd", Types.VARCHAR), new SqlParameter("wrkphone", Types.VARCHAR),
+							new SqlParameter("mobphone", Types.VARCHAR), new SqlParameter("ph_isvalid", Types.BIT),
+							new SqlParameter("cu_isactive", Types.BIT), new SqlParameter("up_date", Types.DATE),
+							new SqlParameter("up_by", Types.BIGINT), new SqlParameter("security_quest1", Types.VARCHAR),
 							new SqlParameter("security_ans1", Types.VARCHAR),
 							new SqlParameter("security_quest2", Types.VARCHAR),
-							new SqlParameter("security_ans2", Types.VARCHAR),
-							new SqlOutParameter("result", Types.BIT),
+							new SqlParameter("security_ans2", Types.VARCHAR), new SqlOutParameter("result", Types.BIT),
 							new SqlOutParameter("full_error", Types.VARCHAR));
 
 			String password = registrationRequest.getPassword();
@@ -433,16 +433,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			Address address = registrationRequest.getAddress();
 			if (address != null) {
 				simpleJdbcCall.withProcedureName("put_customer_address").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(
-								new SqlParameter("add_details_id", Types.INTEGER),
-								new SqlParameter("cu_id", Types.INTEGER),
-								new SqlParameter("cou_id", Types.INTEGER),
-								new SqlParameter("st_id", Types.INTEGER),
-								new SqlParameter("ci_id", Types.INTEGER),
-								new SqlParameter("add1", Types.VARCHAR),
-								new SqlParameter("add2", Types.VARCHAR),
-								new SqlParameter("up_by", Types.VARCHAR),
-								new SqlParameter("up_date", Types.DATE),
+						.declareParameters(new SqlParameter("add_details_id", Types.INTEGER),
+								new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
+								new SqlParameter("st_id", Types.INTEGER), new SqlParameter("ci_id", Types.INTEGER),
+								new SqlParameter("add1", Types.VARCHAR), new SqlParameter("add2", Types.VARCHAR),
+								new SqlParameter("up_by", Types.VARCHAR), new SqlParameter("up_date", Types.DATE),
 								new SqlParameter("zip", Types.VARCHAR),
 								new SqlParameter("isdef_address", Types.VARCHAR));
 
@@ -454,30 +449,22 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 			if (registrationRequest.getCardInformation() != null) {
 				simpleJdbcCall.withProcedureName("post_cust_payment_info").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(
-								new SqlParameter("cust_payment_info_id", Types.INTEGER),
-								new SqlParameter("cu_id", Types.INTEGER),
-								new SqlParameter("paytype", Types.VARCHAR),
-								new SqlParameter("cardnum", Types.VARCHAR),
-								new SqlParameter("expdate", Types.VARCHAR),
+						.declareParameters(new SqlParameter("cust_payment_info_id", Types.INTEGER),
+								new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("paytype", Types.VARCHAR),
+								new SqlParameter("cardnum", Types.VARCHAR), new SqlParameter("expdate", Types.VARCHAR),
 								new SqlParameter("cvv_num", Types.VARCHAR),
-								new SqlParameter("name_on_c", Types.VARCHAR),
-								new SqlParameter("up_by", Types.VARCHAR),
-								new SqlParameter("up_date", Types.DATE),
-								new SqlParameter("add1", Types.VARCHAR),
-								new SqlParameter("add2", Types.VARCHAR),
-								new SqlParameter("ci_id", Types.INTEGER),
-								new SqlParameter("st_id", Types.INTEGER),
-								new SqlParameter("cou_id", Types.INTEGER),
-								new SqlParameter("zip", Types.VARCHAR),
-								new SqlParameter("isdef", Types.VARCHAR));
-				Map<String, Object> cardInsertResult = simpleJdbcCall
-						.execute(customerUpdateCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
+								new SqlParameter("name_on_c", Types.VARCHAR), new SqlParameter("up_by", Types.VARCHAR),
+								new SqlParameter("up_date", Types.DATE), new SqlParameter("add1", Types.VARCHAR),
+								new SqlParameter("add2", Types.VARCHAR), new SqlParameter("ci_id", Types.INTEGER),
+								new SqlParameter("st_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
+								new SqlParameter("zip", Types.VARCHAR), new SqlParameter("isdef", Types.VARCHAR));
+				Map<String, Object> cardInsertResult = simpleJdbcCall.execute(
+						customerUpdateCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
 				logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
 
 				logger.debug("Card information table data has been executed successfully {} ", customerId);
 			}
-			
+
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {
@@ -563,8 +550,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Exiting from customerCardInformationDataMap()");
 		return cardDetails;
 	}
-	
-	
+
 	@Override
 	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId)
 			throws CustomerRegistrationException {
@@ -589,6 +575,23 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		}
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
 		return response;
+	}
+
+	@Override
+	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCustomerDetails()");
+		CustomerDetails customerDetails = null;
+		try {
+			SqlParameterSource inputParam = new MapSqlParameterSource().addValue(CustomerConstants.CUST_ID, customerId)
+					.addValue(CustomerConstants.EMAIL, email);
+			customerDetails = (CustomerDetails) namedParameterJdbcTemplate.query("{call get_customer(:cust_id, :email)}",
+					inputParam, new CustomerDetailsExtractor());
+		} catch (Exception e) {
+			throw new CustomerRegistrationException(e, "12312312");
+		}
+		logger.debug("Exiting from retrieveCustomerDetails()");
+		return customerDetails;
 	}
 
 }

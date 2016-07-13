@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -122,5 +123,13 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		String response = fullRegistrationDao.updateCustomerDefaultAddress(addressDetailId, customerId);
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
 		return response;
+	}
+
+	@Override
+	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email) throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCustomerDetails()");
+		CustomerDetails customerDetails = fullRegistrationDao.retrieveCustomerDetails(customerId, email);
+		logger.debug("Exiting from retrieveCustomerDetails()");
+		return customerDetails;
 	}
 }

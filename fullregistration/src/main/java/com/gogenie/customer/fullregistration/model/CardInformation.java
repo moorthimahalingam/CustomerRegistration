@@ -21,12 +21,15 @@ public class CardInformation implements Serializable {
 	 */
 	private static final long serialVersionUID = -6313894630775815219L;
 	
-	@JsonProperty("creditcardnumber")
+	@JsonProperty ("payment_info_id")
+	private Long paymentInfoId;
+	
+	@JsonProperty("credit_card_number")
     private String creditcardnumber;
 	
     private String encryptedCreditcardumber;
 
-	@JsonProperty("expirydate")
+	@JsonProperty("expiry_date")
     private String expirydate;
 
 	private String encryptedExpirydate;
@@ -49,12 +52,22 @@ public class CardInformation implements Serializable {
 	@JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    /**
+	@JsonProperty ("payment_info_id")
+    public Long getPaymentInfoId() {
+		return paymentInfoId;
+	}
+
+	@JsonProperty ("payment_info_id")
+	public void setPaymentInfoId(Long paymentInfoId) {
+		this.paymentInfoId = paymentInfoId;
+	}
+
+	/**
      * 
      * @return
      *     The creditcardnumber
      */
-    @JsonProperty("creditcardnumber")
+    @JsonProperty("credit_card_number")
     public String getCreditcardnumber() {
         return creditcardnumber;
     }
@@ -64,7 +77,7 @@ public class CardInformation implements Serializable {
      * @param creditcardnumber
      *     The creditcardnumber
      */
-    @JsonProperty("creditcardnumber")
+    @JsonProperty("credit_card_number")
     public void setCreditcardnumber(String creditcardnumber) {
         this.creditcardnumber = creditcardnumber;
     }
@@ -94,12 +107,12 @@ public class CardInformation implements Serializable {
         return ToStringBuilder.reflectionToString(this);
     }
 
-    @JsonProperty("expirydate")
+    @JsonProperty("expiry_date")
     public String getExpirydate() {
     	return expirydate;
     }
     
-    @JsonProperty("expirydate")
+    @JsonProperty("expiry_date")
     public void setExpirydate(String expirydate) {
     	this.expirydate = expirydate;
     }

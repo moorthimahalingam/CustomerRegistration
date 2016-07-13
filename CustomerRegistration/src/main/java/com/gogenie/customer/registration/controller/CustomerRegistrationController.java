@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -35,9 +36,9 @@ public class CustomerRegistrationController {
 			throws CustomerRegistrationException {
 		logger.debug("Entering into customerRegistration()");
 		String email = request.getEmail();
-		logger.debug("Validating the customer is existing or not {}" , email);
+		logger.debug("Validating the customer is existing or not {}", email);
 		boolean isExistingCustomer = registrationService.existingCustomer(email);
-		logger.debug("Customer existing flag {}" , isExistingCustomer);
+		logger.debug("Customer existing flag {}", isExistingCustomer);
 
 		RegistrationResponse registrationResponse = new RegistrationResponse();
 		if (isExistingCustomer) {
@@ -55,9 +56,16 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public RegistrationResponse loginCustomer(@RequestParam(value = "email") String emailId,
-			@RequestParam(value = "password") String password) throws CustomerRegistrationException {
+	public RegistrationResponse loginCustomer(@RequestBody RegistrationRequest request, BindingResult result)
+			throws CustomerRegistrationException {
+		// @RequestBody Regist
+		// @RequestParam(value = "email") String emailId,
+		// @RequestParam(value = "password") String password) throws
+		// CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
+		String emailId = request.getEmail();
+		String password = request.getPassword();
+		logger.debug("Check customer id {} is exist or not", emailId);
 		RegistrationResponse respone = registrationService.loginCustomer(emailId, password);
 		logger.debug("Exiting from loginCustomer()");
 		return respone;
@@ -77,8 +85,8 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/retrieveSecurityQuestion", method = RequestMethod.GET)
-	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId, BindingResult result)
-			throws CustomerRegistrationException {
+	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId,
+			BindingResult result) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveSecurityQuestionsToResetPassword()");
 		SecurityQuestions questions = registrationService.retrieveQuestions(emailId);
 		logger.debug("Exiting from retrieveSecurityQuestionsToResetPassword()");
@@ -98,7 +106,7 @@ public class CustomerRegistrationController {
 	public String resetPassword(@RequestBody RegistrationRequest request, BindingResult result)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into resetPassword()");
-		logger.debug("Resetting the password for the email {}" , request.getEmail());
+		logger.debug("Resetting the password for the email {}", request.getEmail());
 		boolean passwordReset = registrationService.resetCustomerCredential(request.getEmail(), request.getPassword());
 		if (passwordReset) {
 			return "Password updated successfully";
@@ -108,8 +116,8 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/retrievePhoneIsValidFlag", method = RequestMethod.GET)
-	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "emailId") String emailId, BindingResult result)
-			throws CustomerRegistrationException {
+	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "emailId") String emailId,
+			BindingResult result) throws CustomerRegistrationException {
 		logger.debug("Entering into retrivePhoneValidationFlag()");
 		RegistrationResponse response = registrationService.retrievePhoneVerifiedFlag(emailId);
 		logger.debug("Exiting from retrivePhoneValidationFlag()");
@@ -117,33 +125,49 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
-	public String updatePhoneValidationFlag(@RequestParam(value = "customer_id") Integer customerId,
-			@RequestParam(value = "phoneVerificationFlag") String verifiedFlag) throws CustomerRegistrationException {
+	public String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
+			throws CustomerRegistrationException {
+		// @RequestParam(value = "customer_id") Integer customerId,
+		// @RequestParam(value = "phoneVerificationFlag") String verifiedFlag)
+		// throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneValidationFlag()");
+		Integer customerId = request.getCustomerId();
+		String verifiedFlag = request.getPhoneValidationFlag();
+		logger.debug("Update the phone verified flag as {}  for the customer {}", verifiedFlag, customerId);
 		String response = registrationService.updatePhoneVerifiedFlag(customerId, verifiedFlag);
 		logger.debug("Exiting from updatePhoneValidationFlag()");
 		return response;
 	}
 
 	@RequestMapping(value = "/updateCustomer", method = RequestMethod.PUT)
-	public String updateCustomerDetails(@RequestBody RegistrationRequest request, BindingResult result) throws CustomerRegistrationException {
+	public String updateCustomerDetails(@RequestBody RegistrationRequest request, BindingResult result)
+			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = registrationService.updateCustomerDetails(request);
 		logger.debug("Exiting from updateCustomerDetails()");
 		return response;
 	}
-	
-	
+
 	@RequestMapping(value = "/updateCustAddressAsDefault", method = RequestMethod.PUT)
-	public String updateCustomerDefaultAddress(@RequestBody RegistrationRequest request, BindingResult result) throws CustomerRegistrationException {
+	public String updateCustomerDefaultAddress(@RequestBody RegistrationRequest request, BindingResult result)
+			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDefaultAddress()");
-		String response = registrationService.updateCustomerDefaultAddress(request.getAddress().getAddressId(), 
+		String response = registrationService.updateCustomerDefaultAddress(request.getAddress().getAddressId(),
 				request.getCustomerId());
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
 		return response;
 	}
-	
-	
+
+	@RequestMapping(value = "retrieveCustomerDetails", method = RequestMethod.GET)
+	public CustomerDetails retrieveCustomerDetails(@RequestParam(value = "customer_id") Integer customerId,
+			@RequestParam(value = "email") String emailId)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCustomerDetails()");
+		CustomerDetails customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
+		logger.debug("Exiting from retrieveCustomerDetails()");
+		return customerDetails;
+	}
+
 	@ExceptionHandler(CustomerRegistrationException.class)
 	public String exceptionHandler(CustomerRegistrationException exception) {
 		return "Exception " + exception.getMessage();
