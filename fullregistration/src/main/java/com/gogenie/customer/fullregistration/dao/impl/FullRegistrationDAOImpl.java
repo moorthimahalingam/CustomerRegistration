@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -71,11 +72,9 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			String encryptedPassword = encryption.hashedValue(password);
 			registrationRequest.setEncryptedPassword(encryptedPassword);
 			logger.debug("password hashed successfully ");
-
 			encryption = null;
 			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(
-							// new SqlParameter("cust_id", Types.BIGINT),
 							new SqlParameter(CustomerConstants.FIRSTNAME, Types.VARCHAR),
 							new SqlParameter(CustomerConstants.LASTNAME, Types.VARCHAR),
 							new SqlParameter(CustomerConstants.DATEOFBIRTH, Types.DATE),
@@ -97,14 +96,28 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
 
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+			
+			List<Map> customerIdResult = (List) resultSet.get("#result-set-1");
 
-			customerId = (Integer) resultSet.get("returnCustId");
+			logger.debug("Customer Id  is {} ", customerIdResult.toString());
+
+			customerId = (Integer) customerIdResult.get(0).get("returnCustId");
+
+//			customerId = (Integer) resultSet.get("returnCustId");
+			
+			if (customerId== null) {
+				logger.error("Unable into data into customer data table");
+				throw new CustomerRegistrationException("Error in inserting Customer data record");
+			}
 
 			logger.debug("Customer table data has been executed successfully {} ", customerId);
 
 			if (registrationRequest.getAddress() != null) {
+				simpleJdbcCall = null;
+				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 				simpleJdbcCall.withProcedureName("post_address_details").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
+						.declareParameters(
+								new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
 								new SqlParameter(CustomerConstants.COUNTRY_ID, Types.INTEGER),
 								new SqlParameter(CustomerConstants.STATE_ID, Types.INTEGER),
 								new SqlParameter(CustomerConstants.CITY_ID, Types.INTEGER),
@@ -123,6 +136,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			}
 
 			if (registrationRequest.getCardInformation() != null) {
+				simpleJdbcCall = null;
+				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 				simpleJdbcCall.withProcedureName("post_cust_payment_info").withoutProcedureColumnMetaDataAccess()
 						.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
 								new SqlParameter(CustomerConstants.PAYEMENTTYPE, Types.VARCHAR),
@@ -141,6 +156,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 								new SqlOutParameter("error_status", Types.VARCHAR));
 				Map<String, Object> cardInsertResult = simpleJdbcCall
 						.execute(customerCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
+				
 				logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
 
 				logger.debug("Card information table data has been executed successfully {} ", customerId);

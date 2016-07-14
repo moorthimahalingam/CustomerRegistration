@@ -10,9 +10,12 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
+@JsonInclude(Include.NON_EMPTY)
 public class CustomerDetails implements Serializable {
 
 	/**
@@ -46,7 +49,7 @@ public class CustomerDetails implements Serializable {
 	private SecurityQuestions securityQuestions;
 	@JsonProperty("Address")
 	private List<Address> address = new ArrayList<Address>();
-	@JsonProperty("Cardinformation")
+	@JsonProperty("CardInformation")
 	private List<CardInformation> cardinformation = new ArrayList<CardInformation>();
 	@JsonProperty("DeviceInfo")
 	private DeviceInfo deviceInfo;

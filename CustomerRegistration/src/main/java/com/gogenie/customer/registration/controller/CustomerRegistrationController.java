@@ -56,15 +56,10 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public RegistrationResponse loginCustomer(@RequestBody RegistrationRequest request, BindingResult result)
+	public RegistrationResponse loginCustomer(@RequestParam(value = "email") String emailId,
+			@RequestParam(value = "password") String password, BindingResult result)
 			throws CustomerRegistrationException {
-		// @RequestBody Regist
-		// @RequestParam(value = "email") String emailId,
-		// @RequestParam(value = "password") String password) throws
-		// CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
-		String emailId = request.getEmail();
-		String password = request.getPassword();
 		logger.debug("Check customer id {} is exist or not", emailId);
 		RegistrationResponse respone = registrationService.loginCustomer(emailId, password);
 		logger.debug("Exiting from loginCustomer()");
@@ -84,7 +79,7 @@ public class CustomerRegistrationController {
 		return "Not a valid user";
 	}
 
-	@RequestMapping(value = "/retrieveSecurityQuestion", method = RequestMethod.GET)
+	@RequestMapping(value = "/retrieveSecurityQuestions", method = RequestMethod.GET)
 	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId,
 			BindingResult result) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveSecurityQuestionsToResetPassword()");
@@ -127,9 +122,6 @@ public class CustomerRegistrationController {
 	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
 	public String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
 			throws CustomerRegistrationException {
-		// @RequestParam(value = "customer_id") Integer customerId,
-		// @RequestParam(value = "phoneVerificationFlag") String verifiedFlag)
-		// throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneValidationFlag()");
 		Integer customerId = request.getCustomerId();
 		String verifiedFlag = request.getPhoneValidationFlag();
@@ -160,8 +152,7 @@ public class CustomerRegistrationController {
 
 	@RequestMapping(value = "retrieveCustomerDetails", method = RequestMethod.GET)
 	public CustomerDetails retrieveCustomerDetails(@RequestParam(value = "customer_id") Integer customerId,
-			@RequestParam(value = "email") String emailId)
-			throws CustomerRegistrationException {
+			@RequestParam(value = "email") String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveCustomerDetails()");
 		CustomerDetails customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
 		logger.debug("Exiting from retrieveCustomerDetails()");
