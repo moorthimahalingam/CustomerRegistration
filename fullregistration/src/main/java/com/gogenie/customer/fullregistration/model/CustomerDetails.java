@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
-@JsonInclude(Include.NON_EMPTY)
+@JsonInclude(Include.NON_NULL)
 public class CustomerDetails implements Serializable {
 
 	/**
@@ -290,7 +291,7 @@ public class CustomerDetails implements Serializable {
 	 * 
 	 * @return The cardinformation
 	 */
-	@JsonProperty("Cardinformation")
+	@JsonProperty("CardInformation")
 	public List<CardInformation> getCardinformation() {
 		return cardinformation;
 	}
@@ -300,7 +301,7 @@ public class CustomerDetails implements Serializable {
 	 * @param cardinformation
 	 *            The Cardinformation
 	 */
-	@JsonProperty("Cardinformation")
+	@JsonProperty("CardInformation")
 	public void setCardinformation(List<CardInformation> cardinformation) {
 		this.cardinformation = cardinformation;
 	}

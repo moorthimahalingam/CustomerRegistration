@@ -31,6 +31,7 @@ public class CustomerDetailsExtractor  implements ResultSetExtractor<CustomerDet
 		Map<Object, Object> addressDetailIdMap = new HashMap<Object, Object>();
 		Map<Object, Object> paymentInfoIdMap = new HashMap<Object, Object>();
 		while (rs.next()) {
+			logger.debug("Result set value is {}", rs.toString());
 			if (customerDetails == null) {
 				customerDetails = new CustomerDetails();
 				customerDetails.setCustomerId(rs.getInt(CustomerConstants.CUST_ID));
@@ -49,7 +50,6 @@ public class CustomerDetailsExtractor  implements ResultSetExtractor<CustomerDet
 				securityQuestions.setAnswer2(rs.getString(CustomerConstants.SECURITY_ANSWER2));
 				customerDetails.setSecurityQuestions(securityQuestions);
 			}
-
 			Long addressDetailId = rs.getLong(CustomerConstants.ADDRESS_DETAILS_ID);
 			if (addressDetailId != null) {
 				if (addressDetailIdMap.get(addressDetailId) == null) {
@@ -79,7 +79,7 @@ public class CustomerDetailsExtractor  implements ResultSetExtractor<CustomerDet
 					cardInformation.setCvvNumber(rs.getInt("CVV_NUMBER"));
 					cardInformation.setNameOnCard(rs.getString("NAME_ON_CARD"));
 					Address address = new Address();
-					address.setAddressId(addressDetailId);
+//					address.setAddressId(addressDetailId);
 					address.setAddressline1(rs.getString("payment_address_1"));
 					address.setAddressline2(rs.getString("payment_address_2"));
 					address.setCountry(rs.getInt("payment_country"));

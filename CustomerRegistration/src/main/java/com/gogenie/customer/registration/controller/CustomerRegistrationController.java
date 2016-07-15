@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
@@ -57,7 +58,7 @@ public class CustomerRegistrationController {
 
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public RegistrationResponse loginCustomer(@RequestParam(value = "email") String emailId,
-			@RequestParam(value = "password") String password, BindingResult result)
+			@RequestParam(value = "password") String password)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
 		logger.debug("Check customer id {} is exist or not", emailId);
@@ -80,8 +81,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/retrieveSecurityQuestions", method = RequestMethod.GET)
-	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId,
-			BindingResult result) throws CustomerRegistrationException {
+	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(@RequestParam(value = "email") String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveSecurityQuestionsToResetPassword()");
 		SecurityQuestions questions = registrationService.retrieveQuestions(emailId);
 		logger.debug("Exiting from retrieveSecurityQuestionsToResetPassword()");
@@ -89,8 +89,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/validateSecurityQuestions", method = RequestMethod.GET)
-	public String validateSecurityQuestionsToResetPassword(@RequestBody RegistrationRequest request,
-			BindingResult result) throws CustomerRegistrationException {
+	public String validateSecurityQuestionsToResetPassword(@RequestBody RegistrationRequest request) throws CustomerRegistrationException {
 		logger.debug("Entering into validateSecurityQuestionsToResetPassword()");
 		String answerDetail = registrationService.validateSecurityQuestions(request);
 		logger.debug("Exiting from validateSecurityQuestionsToResetPassword()");
@@ -111,8 +110,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/retrievePhoneIsValidFlag", method = RequestMethod.GET)
-	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "emailId") String emailId,
-			BindingResult result) throws CustomerRegistrationException {
+	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "email") String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrivePhoneValidationFlag()");
 		RegistrationResponse response = registrationService.retrievePhoneVerifiedFlag(emailId);
 		logger.debug("Exiting from retrivePhoneValidationFlag()");
@@ -151,11 +149,16 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "retrieveCustomerDetails", method = RequestMethod.GET)
-	public CustomerDetails retrieveCustomerDetails(@RequestParam(value = "customer_id") Integer customerId,
+	public @ResponseBody CustomerDetails retrieveCustomerDetails(@RequestParam(value = "customer_id") Integer customerId,
 			@RequestParam(value = "email") String emailId) throws CustomerRegistrationException {
+		CustomerDetails customerDetails = null;
 		logger.debug("Entering into retrieveCustomerDetails()");
-		CustomerDetails customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
+		try{
+			customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
 		logger.debug("Exiting from retrieveCustomerDetails()");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		return customerDetails;
 	}
 
