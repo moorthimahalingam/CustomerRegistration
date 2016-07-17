@@ -1,6 +1,7 @@
 package com.gogenie.customer.fullregistration.service;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
@@ -26,7 +27,7 @@ public interface FullRegistrationService {
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
-	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId) throws CustomerRegistrationException;
+	public String updateCustomerDefaultAddress(Address address, Integer customerId) throws CustomerRegistrationException;
 	
 	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email) throws CustomerRegistrationException;
 	

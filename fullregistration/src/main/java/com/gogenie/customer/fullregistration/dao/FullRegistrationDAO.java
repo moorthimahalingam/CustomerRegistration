@@ -26,8 +26,6 @@ public interface FullRegistrationDAO {
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
-	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId) throws CustomerRegistrationException;
-	
 	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email) throws CustomerRegistrationException;
 	
 }

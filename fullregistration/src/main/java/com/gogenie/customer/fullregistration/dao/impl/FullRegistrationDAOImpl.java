@@ -28,8 +28,6 @@ import org.springframework.stereotype.Repository;
 
 import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
-import com.gogenie.customer.fullregistration.model.Address;
-import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
@@ -66,6 +64,18 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		RegistrationResponse response = new RegistrationResponse();
 		Integer customerId = null;
 		try {
+			String emailId = registrationRequest.getEmail();
+			logger.debug("Email id passed by the customer is {}", emailId);
+			if (emailId != null) {
+				logger.debug("validate the customer's email id is exist before proceed to insert");
+				boolean isCustomerExist = existingCustomer(emailId);
+				if (isCustomerExist)  {
+					logger.debug("Input email is already exist");
+					response.setResponseText("Customer/Email is already exist");
+					return response;
+				}
+			}
+			
 			String password = registrationRequest.getPassword();
 			EncryptionService encryption = new EncryptionServiceImpl();
 			logger.debug("Hashed service execution for password");
@@ -110,55 +120,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			}
 
 			logger.debug("Customer table data has been executed successfully {} ", customerId);
-
-			if (registrationRequest.getAddress() != null) {
-				simpleJdbcCall = null;
-				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-				simpleJdbcCall.withProcedureName("post_address_details").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.COUNTRY_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.STATE_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.CITY_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.ADDRESS1, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.ADDRESS2, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CREATEDBY, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CREATEDDATE, Types.DATE),
-								new SqlParameter(CustomerConstants.ZIPCODE, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.ISDEFAULT, Types.VARCHAR),
-								new SqlOutParameter("error_status", Types.VARCHAR));
-
-				Map<String, Object> addressResult = simpleJdbcCall
-						.execute(customerAddresDataMap(registrationRequest.getAddress(), customerId));
-				logger.debug("Address details insert {} result ", addressResult.toString());
-				logger.debug("Address table data has been executed successfully {} ", customerId);
-			}
-
-			if (registrationRequest.getCardInformation() != null) {
-				simpleJdbcCall = null;
-				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-				simpleJdbcCall.withProcedureName("post_cust_payment_info").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.PAYEMENTTYPE, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CARDNUMBER, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.EXPIRYDATE, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CVV_NUMBER, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.NAME_ON_CARD, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CREATEDBY, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CREATEDDATE, Types.DATE),
-								new SqlParameter(CustomerConstants.ADDRESS1, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.ADDRESS2, Types.VARCHAR),
-								new SqlParameter(CustomerConstants.CITY_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.STATE_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.COUNTRY_ID, Types.INTEGER),
-								new SqlParameter(CustomerConstants.ZIPCODE, Types.VARCHAR),
-								new SqlOutParameter("error_status", Types.VARCHAR));
-				Map<String, Object> cardInsertResult = simpleJdbcCall
-						.execute(customerCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
-
-				logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
-
-				logger.debug("Card information table data has been executed successfully {} ", customerId);
-			}
 			response.setRegistrationSuccess(true);
 			response.setCustomerId(customerId);
 
@@ -377,55 +338,16 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customer;
 	}
 
-	private Map<String, Object> customerAddresDataMap(Address address, Integer custId) {
-		logger.debug("Entering into customerAddresDataMap()");
-		Map<String, Object> addressDetails = new HashMap<>();
-		addressDetails.put(CustomerConstants.CUST_ID, custId);
-		addressDetails.put(CustomerConstants.COUNTRY_ID, address.getCountry());
-		addressDetails.put(CustomerConstants.STATE_ID, address.getState());
-		addressDetails.put(CustomerConstants.CITY_ID, address.getCity());
-		addressDetails.put(CustomerConstants.ADDRESS1, address.getAddressline1());
-		addressDetails.put(CustomerConstants.ADDRESS2, address.getAddressline2());
-		addressDetails.put(CustomerConstants.CREATEDDATE, new java.sql.Date(new Date().getTime()));
-		addressDetails.put(CustomerConstants.CREATEDBY, "gogenie");
-		addressDetails.put(CustomerConstants.ZIPCODE, address.getPostalcode());
-		addressDetails.put(CustomerConstants.ISDEFAULT, "Y");
-		logger.debug("Exiting from customerAddresDataMap()");
-		return addressDetails;
-	}
 
-	private Map<String, Object> customerCardInformationDataMap(CardInformation cardInformation, Integer custId) {
-		logger.debug("Entering into customerCardInformationDataMap()");
-		Map<String, Object> cardDetails = new HashMap<>();
-		cardDetails.put(CustomerConstants.CUST_ID, custId);
-		cardDetails.put(CustomerConstants.PAYEMENTTYPE, cardInformation.getPaymentType());
-		cardDetails.put(CustomerConstants.CARDNUMBER, cardInformation.getCreditcardnumber());
-		cardDetails.put(CustomerConstants.EXPIRYDATE, cardInformation.getExpirydate());
-		cardDetails.put(CustomerConstants.CVV_NUMBER, cardInformation.getCvvNumber());
-		cardDetails.put(CustomerConstants.NAME_ON_CARD, cardInformation.getNameOnCard());
-		cardDetails.put(CustomerConstants.CREATEDDATE, new java.sql.Date(new Date().getTime()));
-		cardDetails.put(CustomerConstants.CREATEDBY, 12312312);
-		Address billingAddress = cardInformation.getAddress();
-		if (billingAddress != null) {
-			cardDetails.put(CustomerConstants.ADDRESS1, billingAddress.getAddressline1());
-			cardDetails.put(CustomerConstants.ADDRESS2, billingAddress.getAddressline2());
-			cardDetails.put(CustomerConstants.CITY_ID, billingAddress.getCity());
-			cardDetails.put(CustomerConstants.STATE_ID, billingAddress.getState());
-			cardDetails.put(CustomerConstants.COUNTRY_ID, billingAddress.getCountry());
-			cardDetails.put(CustomerConstants.ZIPCODE, billingAddress.getPostalcode());
-			cardDetails.put(CustomerConstants.ISDEFAULT, billingAddress.getDefaultAddressFlag());
-		}
-		logger.debug("Exiting from customerCardInformationDataMap()");
-		return cardDetails;
-	}
+	
 
 	@Override
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = null;
 		try {
-			simpleJdbcCall = null;
-			simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+//			simpleJdbcCall = null;
+//			simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 			simpleJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("cu_id", Types.INTEGER),
 							new SqlParameter("first_name", Types.VARCHAR), new SqlParameter("last_name", Types.VARCHAR),
@@ -442,62 +364,22 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							new SqlOutParameter("full_error", Types.VARCHAR));
 
 			String password = registrationRequest.getPassword();
-			EncryptionService encryption = new EncryptionServiceImpl();
-			logger.debug("Hashed service execution for password");
-			String encryptedPassword = encryption.hashedValue(password);
-			registrationRequest.setEncryptedPassword(encryptedPassword);
-			logger.debug("password hashed successfully ");
+			if (password != null) {
+				EncryptionService encryption = new EncryptionServiceImpl();
+				logger.debug("Hashed service execution for password");
+				String encryptedPassword = encryption.hashedValue(password);
+				registrationRequest.setEncryptedPassword(encryptedPassword);
+				logger.debug("password hashed successfully ");
+			}
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
-			Integer customerId = registrationRequest.getCustomerId();
-			Address address = registrationRequest.getAddress();
-			if (address != null) {
-				simpleJdbcCall = null;
-				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-				simpleJdbcCall.withProcedureName("put_customer_address").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(new SqlParameter("add_details_id", Types.INTEGER),
-								new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
-								new SqlParameter("st_id", Types.INTEGER), new SqlParameter("ci_id", Types.INTEGER),
-								new SqlParameter("add1", Types.VARCHAR), 
-								new SqlParameter("add2", Types.VARCHAR),
-								new SqlParameter("up_by", Types.VARCHAR),
-								new SqlParameter("up_date", Types.DATE),  
-								new SqlParameter("zip", Types.VARCHAR),
-								new SqlParameter("isdef_address", Types.VARCHAR));
-
-				Map<String, Object> addressResult = simpleJdbcCall
-						.execute(customerUpdateAddresDataMap(address, customerId));
-				logger.debug("Address details insert {} result ", addressResult.toString());
-				logger.debug("Address table data has been executed successfully {} ", customerId);
-			}
-
-			if (registrationRequest.getCardInformation() != null) {
-				simpleJdbcCall = null;
-				simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
-				simpleJdbcCall.withProcedureName("put_customer_default_payment").withoutProcedureColumnMetaDataAccess()
-						.declareParameters(new SqlParameter("cust_payment_info_id", Types.INTEGER),
-								new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("paytype", Types.VARCHAR),
-								new SqlParameter("cardnum", Types.VARCHAR), new SqlParameter("expdate", Types.VARCHAR),
-								new SqlParameter("cvv_num", Types.VARCHAR),
-								new SqlParameter("name_on_c", Types.VARCHAR), 
-								new SqlParameter("up_date", Types.DATE), new SqlParameter("up_by", Types.VARCHAR),
-								new SqlParameter("add1", Types.VARCHAR),
-								new SqlParameter("add2", Types.VARCHAR), new SqlParameter("ci_id", Types.INTEGER),
-								new SqlParameter("st_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
-								new SqlParameter("zip", Types.VARCHAR), new SqlParameter("isdef", Types.VARCHAR));
-				Map<String, Object> cardInsertResult = simpleJdbcCall.execute(
-						customerUpdateCardInformationDataMap(registrationRequest.getCardInformation(), customerId));
-				logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
-
-				logger.debug("Card information table data has been executed successfully {} ", customerId);
-			}
-
+//			Integer customerId = registrationRequest.getCustomerId();
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "updateCustomerDetails");
 		}
 
-		logger.debug("Entering into updateCustomerDetails()");
+		logger.debug("Exiting from updateCustomerDetails()");
 		return response;
 	}
 
@@ -533,75 +415,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customer;
 	}
 
-	private Map<String, Object> customerUpdateAddresDataMap(Address address, Integer custId) {
-		logger.debug("Entering into customerAddresDataMap()");
-		Map<String, Object> addressDetails = new HashMap<>();
-		addressDetails.put("add_details_id", address.getAddressId());
-		addressDetails.put("cu_id", custId);
-		addressDetails.put("cou_id", address.getCountry());
-		addressDetails.put("st_id", address.getState());
-		addressDetails.put("ci_id", address.getCity());
-		addressDetails.put("add1", address.getAddressline1());
-		addressDetails.put("add2", address.getAddressline2());
-		addressDetails.put("up_by", "customer");
-		addressDetails.put("up_date", new java.sql.Date(new Date().getTime()));
-		addressDetails.put("zip", address.getPostalcode());
-		addressDetails.put("isdef_address", "Y");
-		logger.debug("Exiting from customerAddresDataMap()");
-		return addressDetails;
-	}
-
-	private Map<String, Object> customerUpdateCardInformationDataMap(CardInformation cardInformation, Integer custId) {
-		logger.debug("Entering into customerCardInformationDataMap()");
-		Map<String, Object> cardDetails = new HashMap<>();
-		cardDetails.put("cust_payment_info_id", cardInformation.getPaymentInfoId());
-		cardDetails.put("cu_id", custId);
-		cardDetails.put("paytype", cardInformation.getPaymentType());
-		cardDetails.put("cardnum", cardInformation.getCreditcardnumber());
-		cardDetails.put("expdate", cardInformation.getExpirydate());
-		cardDetails.put("cvv_num", cardInformation.getCvvNumber());
-		cardDetails.put("name_on_c", cardInformation.getNameOnCard());
-		cardDetails.put("up_date", new java.sql.Date(new Date().getTime()));
-		cardDetails.put("up_by", "Customer");
-		Address billingAddress = cardInformation.getAddress();
-		if (billingAddress != null) {
-			cardDetails.put("add1", billingAddress.getAddressline1());
-			cardDetails.put("add2", billingAddress.getAddressline2());
-			cardDetails.put("ci_id", billingAddress.getCity());
-			cardDetails.put("st_id", billingAddress.getState());
-			cardDetails.put("cou_id", billingAddress.getCountry());
-			cardDetails.put("zip", billingAddress.getPostalcode());
-			cardDetails.put("isdef", billingAddress.getDefaultAddressFlag());
-		}
-		logger.debug("Exiting from customerCardInformationDataMap()");
-		return cardDetails;
-	}
-
-	@Override
-	public String updateCustomerDefaultAddress(Long addressDetailId, Integer customerId)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into updateCustomerDefaultAddress()");
-		String response = null;
-		try {
-			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
-					.declareParameters(new SqlParameter("address_details_id", Types.BIGINT),
-							new SqlParameter("cust_id", Types.BIGINT), new SqlParameter("updateddate", Types.DATE),
-							new SqlParameter("updatedby", Types.BIGINT),
-							new SqlParameter("isdefault_address", Types.BIT));
-			Map<String, Object> updateDefaultAdrMap = new HashMap<String, Object>();
-			updateDefaultAdrMap.put("address_details_id", addressDetailId);
-			updateDefaultAdrMap.put("cust_id", customerId);
-			updateDefaultAdrMap.put("updateddate", new java.sql.Date(new Date().getTime()));
-			updateDefaultAdrMap.put("updatedby", 12313123);
-			updateDefaultAdrMap.put("isdefault_address", "Y");
-			simpleJdbcCall.execute(updateDefaultAdrMap);
-			response = "successfully updated";
-		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "updateCustomerDefaultAddress");
-		}
-		logger.debug("Exiting from updateCustomerDefaultAddress()");
-		return response;
-	}
 
 	@Override
 	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email)

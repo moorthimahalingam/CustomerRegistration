@@ -118,7 +118,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
-	public String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
+	public @ResponseBody String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updatePhoneValidationFlag()");
 		Integer customerId = request.getCustomerId();
@@ -130,7 +130,7 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/updateCustomer", method = RequestMethod.PUT)
-	public String updateCustomerDetails(@RequestBody RegistrationRequest request, BindingResult result)
+	public @ResponseBody String updateCustomerDetails(@RequestBody RegistrationRequest request, BindingResult result)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = registrationService.updateCustomerDetails(request);
@@ -142,8 +142,7 @@ public class CustomerRegistrationController {
 	public String updateCustomerDefaultAddress(@RequestBody RegistrationRequest request, BindingResult result)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDefaultAddress()");
-		String response = registrationService.updateCustomerDefaultAddress(request.getAddress().getAddressId(),
-				request.getCustomerId());
+		String response = registrationService.updateCustomerDefaultAddress(request.getAddress(), request.getCustomerId());
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
 		return response;
 	}
