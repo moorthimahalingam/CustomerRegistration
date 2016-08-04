@@ -48,6 +48,7 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
 		
 		Integer customerId = registrationResponse.getCustomerId();
+		
 		if (customerId != null) {
 			
 			Address address = registrationRequest.getAddress();

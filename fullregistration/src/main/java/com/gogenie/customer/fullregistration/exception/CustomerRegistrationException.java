@@ -16,11 +16,11 @@ public class CustomerRegistrationException extends Exception {
 	}
 	
 	public CustomerRegistrationException(Throwable t, String errorCode) {
-		super(t);
+		super(errorCode,t);
 	}
 	
 	public CustomerRegistrationException(Exception e, String errorCode) {
-		super(e);
+		super(errorCode,e);
 	}
 
 	public CustomerRegistrationException(Throwable t) {
@@ -30,5 +30,23 @@ public class CustomerRegistrationException extends Exception {
 	public CustomerRegistrationException(Exception e) {
 		super(e);
 	}
+	
+	private String errorCode;
+	private String errorDesc;
+
+	public CustomerRegistrationException(Throwable throwable, String errorDtl, String errCode,
+			String errDec) {
+		super(errorDtl, throwable);
+		this.errorCode = errCode;
+		this.errorDesc = errDec;
+	}
+	
+	public CustomerRegistrationException(Exception exception, String errorDtl, String errCode,
+			String errDec) {
+		super(errorDtl, exception);
+		this.errorCode = errCode;
+		this.errorDesc = errDec;
+	}
+	
 
 }
