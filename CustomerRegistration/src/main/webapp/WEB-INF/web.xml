@@ -48,6 +48,15 @@
 	<servlet-name>rest</servlet-name>
 	<url-pattern>/service/*</url-pattern>
 </servlet-mapping>
-
+<filter>
+    <filter-name>customerRegistrationCROSFilter</filter-name>
+    <filter-class>
+        com.gogenie.customer.registration.controller.CustomerRegistrationCROSFilter
+    </filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>customerRegistrationCROSFilter</filter-name>
+    <url-pattern>/service/*</url-pattern>
+</filter-mapping>
 </web-app>
 

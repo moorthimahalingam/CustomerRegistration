@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 @JsonIgnoreProperties(ignoreUnknown=true)
-@JsonInclude(Include.NON_NULL)
+//@JsonInclude(Include.NON_NULL)
 public class RegistrationRequest implements Serializable {
 
     /**

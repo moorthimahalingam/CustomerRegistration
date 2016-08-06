@@ -103,6 +103,10 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							new SqlOutParameter("returnCustId", Types.INTEGER));
 
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
+			
+			if (resultSet != null && resultSet.get("estatus") != null) {
+				String errorMsg = (String)resultSet.get("estatus");
+			}
 
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 
