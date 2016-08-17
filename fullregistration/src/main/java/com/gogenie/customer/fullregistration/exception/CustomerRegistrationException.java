@@ -47,6 +47,10 @@ public class CustomerRegistrationException extends Exception {
 		this.errorCode = errCode;
 		this.errorDesc = errDec;
 	}
-	
 
+	public CustomerRegistrationException(String errCode,
+			String errDec) {
+		this.errorCode = errCode;
+		this.errorDesc = errDec;
+	}
 }

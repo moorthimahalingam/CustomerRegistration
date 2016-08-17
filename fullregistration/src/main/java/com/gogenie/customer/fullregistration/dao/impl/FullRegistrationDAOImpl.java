@@ -18,6 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -99,39 +100,27 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							new SqlParameter(CustomerConstants.SECURITY_ANSWER1, Types.VARCHAR),
 							new SqlParameter(CustomerConstants.SECURITY_QUESTION2, Types.VARCHAR),
 							new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
-							new SqlOutParameter("error_status", Types.VARCHAR),
-							new SqlOutParameter("returnCustId", Types.INTEGER));
+							new SqlOutParameter("estatus", Types.VARCHAR),
+							new SqlOutParameter("sstatus", Types.VARCHAR));
 
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
 			
-			if (resultSet != null && resultSet.get("estatus") != null) {
-				String errorMsg = (String)resultSet.get("estatus");
+			if (resultSet.get("estatus") != null) {
+				errorMessageHandler((String)resultSet.get("estatus"));
 			}
-
+			
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 
-			List<Map> customerIdResult = (List) resultSet.get("#result-set-1");
-
-			logger.debug("Customer Id  is {} ", customerIdResult.toString());
-
-			customerId = (Integer) customerIdResult.get(0).get("returnCustId");
-
-			// customerId = (Integer) resultSet.get("returnCustId");
-
-			if (customerId == null) {
-				logger.error("Unable into data into customer data table");
-				throw new CustomerRegistrationException("Error in inserting Customer data record");
-			}
+//			List<Map> customerIdResult = (List) resultSet.get("#result-set-1");
+//			logger.debug("Customer Id  is {} ", customerIdResult.toString());
+//			customerId = (Integer) customerIdResult.get(0).get("returnCustId");
+			customerId = (Integer) resultSet.get("sstatus");
 
 			logger.debug("Customer table data has been executed successfully {} ", customerId);
 			response.setRegistrationSuccess(true);
 			response.setCustomerId(customerId);
-
 		} catch (Exception e) {
 			response.setRegistrationSuccess(false);
-			if (customerId != null && customerId.intValue() > 0) {
-				logger.debug("Rollback the customer registration transaction ");
-			}
 			throw new CustomerRegistrationException(e, "111111");
 		}
 		logger.debug("Exiting from registerCustomer()");
@@ -224,11 +213,16 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							EncryptionService encryption = new EncryptionServiceImpl();
 							try {
 								boolean matched = encryption.validateHashedValue(password, encryptedPassword);
+								logger.debug("Password didn't match ");
 								if (matched) {
 									dbResult = new RegistrationResponse();
 									dbResult.setFirstName(rs.getString("firstname"));
 									dbResult.setLastName(rs.getString("lastname"));
 									dbResult.setCustomerId(rs.getInt("cust_id"));
+								} else {
+									dbResult = new RegistrationResponse();
+									dbResult.setRegistrationSuccess(false);
+									dbResult.setResponseText("Invalid User id and password");
 								}
 							} catch (GoGenieUtilityServiceException e) {
 								dbResult = null;
@@ -437,4 +431,14 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customerDetails;
 	}
 
+	/**
+	 * 
+	 * @param errorMessage
+	 * @return
+	 */
+	private void errorMessageHandler(String errorMessage) throws CustomerRegistrationException {
+		String errorMsg[] = errorMessage.split(":");
+		CustomerRegistrationException cre = new CustomerRegistrationException(errorMsg[0], errorMsg[1]);
+		throw cre;
+	}
 }

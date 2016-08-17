@@ -57,11 +57,16 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 					new SqlParameter(CustomerConstants.STATE_ID, Types.INTEGER),
 					new SqlParameter(CustomerConstants.COUNTRY_ID, Types.INTEGER),
 					new SqlParameter(CustomerConstants.ZIPCODE, Types.VARCHAR),
-					new SqlOutParameter("error_status", Types.VARCHAR));
+					new SqlOutParameter("estatus", Types.VARCHAR),
+					new SqlOutParameter("sstatus", Types.VARCHAR));
 			Map<String, Object> cardInsertResult = simpleJdbcCall
 					.execute(customerCardInformationDataMap(cardInfo, customerId));
 			
 			logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
+			
+			if (cardInsertResult.get("estatus") != null) {
+				errorMessageHandler((String)cardInsertResult.get("estatus"));
+			}
 			logger.debug("Card information table data has been executed successfully {} ", customerId);
 		} catch (Exception e) {
 			logger.error("Error while inserting customer card information ()");
@@ -154,6 +159,18 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 	public boolean updateDefaultCardInfo(CardInformation cardInfo, Integer customerId)
 			throws CustomerRegistrationException {
 		return false;
+	}
+	
+
+	/**
+	 * 
+	 * @param errorMessage
+	 * @return
+	 */
+	private void errorMessageHandler(String errorMessage) throws CustomerRegistrationException {
+		String errorMsg[] = errorMessage.split(":");
+		CustomerRegistrationException cre = new CustomerRegistrationException(errorMsg[0], errorMsg[1]);
+		throw cre;
 	}
 	
 	

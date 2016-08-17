@@ -7,7 +7,7 @@ public interface AddressDAO {
 
 	public boolean insertCustomerAddress(Address address, Integer customerId) throws CustomerRegistrationException;
 	
-	public boolean updateCustomerAddress(Address address , Integer customerId) throws CustomerRegistrationException;
+	public String updateCustomerAddress(Address address , Integer customerId) throws CustomerRegistrationException;
 	
 	public String updateCustomerDefaultAddress(Address address, Integer customerId) throws CustomerRegistrationException;
 }
