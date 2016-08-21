@@ -5,9 +5,13 @@ import java.util.List;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jndi.JndiTemplate;
@@ -17,7 +21,16 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 @Configuration
 @ComponentScan({"com.gogenie.customer.registration, com.gogenie.customer.fullregistration"})
+@PropertySource("classpath:application.properties")
 public class SpringConfig {
+
+	@Value("${gogenie_jndi}")
+	private String GOGENIE_JNDI;
+	
+	@Bean 
+	public static PropertySourcesPlaceholderConfigurer propertyConfigInDev() {
+		return new PropertySourcesPlaceholderConfigurer();
+	}
 
 	@Bean(name="restTemplate")
 	public RestTemplate getRestTemplate() {
@@ -32,7 +45,11 @@ public class SpringConfig {
 	public DataSource gogenieDataSource() throws NamingException {
 		JndiTemplate jndiTemplate = new JndiTemplate();
 	    DataSource gogenieDataSource
-	            = (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/MyGogenieDB");
+	            = (DataSource) jndiTemplate.lookup(GOGENIE_JNDI);
+//	    		= (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/MyGogenieDB");	
 		return gogenieDataSource;
-	}	
+	}
+	
+	
+	
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import com.gogenie.customer.fullregistration.dao.CardInfoDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
+import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
 import com.gogenie.util.constants.CustomerConstants;
 
 @Repository
@@ -31,6 +33,9 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 	private DataSource gogenieDataSource;
 	
 	private SimpleJdbcCall simpleJdbcCall;
+	
+	@Inject
+	private GoGenieAdrCache adrCache;
 	
 	@PostConstruct
 	private void initialize() {
