@@ -1,5 +1,7 @@
 package com.gogenie.customer.registration.controller;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -14,7 +16,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.CountryCache;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -31,6 +35,9 @@ public class CustomerRegistrationController {
 
 	@Inject
 	FullRegistrationService registrationService;
+	
+	@Inject
+	GoGenieAdrCache goGenieAdrCache;
 
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
 	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request, BindingResult result)
@@ -159,6 +166,14 @@ public class CustomerRegistrationController {
 			e.printStackTrace();
 		}
 		return customerDetails;
+	}
+	
+	@RequestMapping(value="/countrystateMapping",  method=RequestMethod.GET)
+	public @ResponseBody  Map<Integer,CountryCache> retrieveCountryStateMapping() throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCountryStateMapping()");
+		Map<Integer,CountryCache> countryCache = goGenieAdrCache.getCountryStateCityMap();
+		logger.debug("Exiting from retrieveCountryStateMapping()");
+		return countryCache;
 	}
 
 	@ExceptionHandler(CustomerRegistrationException.class)
