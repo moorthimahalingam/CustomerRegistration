@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -18,7 +17,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -105,21 +103,24 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
 			
+			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+
 			if (resultSet.get("estatus") != null) {
 				errorMessageHandler((String)resultSet.get("estatus"));
 			}
 			
-			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
-
 //			List<Map> customerIdResult = (List) resultSet.get("#result-set-1");
 //			logger.debug("Customer Id  is {} ", customerIdResult.toString());
 //			customerId = (Integer) customerIdResult.get(0).get("returnCustId");
+			
 			customerId = (Integer) resultSet.get("sstatus");
 
 			logger.debug("Customer table data has been executed successfully {} ", customerId);
 			response.setRegistrationSuccess(true);
 			response.setCustomerId(customerId);
 		} catch (Exception e) {
+			logger.error("Exception has occcurred in register customer method");
+			e.printStackTrace();
 			response.setRegistrationSuccess(false);
 			throw new CustomerRegistrationException(e, "111111");
 		}
@@ -156,13 +157,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	@Override
 	public SecurityQuestions retrieveSecurityQuestion(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveSecurityQuestion()");
-		// @TODO - Question codes and answers will be retrieved from Database
-		// Corresponding questions will be retrieved from mapping class or from
-		// mapping table
-		// Both will be send to client side for customer verification..
 		String questionCode1 = "11100";
 		String questionCode2 = "11101";
-
 		String question1 = "Whats your favorite color";
 		String answer1 = "Red";
 
@@ -437,8 +433,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	 * @return
 	 */
 	private void errorMessageHandler(String errorMessage) throws CustomerRegistrationException {
+		logger.debug("Entering into errorMessageHandler()");
+		logger.debug("Error message  from DB {} " , errorMessage);
 		String errorMsg[] = errorMessage.split(":");
 		CustomerRegistrationException cre = new CustomerRegistrationException(errorMsg[0], errorMsg[1]);
+		logger.debug("Exiting from errorMessageHandler()");
 		throw cre;
 	}
 }

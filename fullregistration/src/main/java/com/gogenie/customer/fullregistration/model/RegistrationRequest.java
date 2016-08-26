@@ -5,16 +5,12 @@ import java.io.Serializable;
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.lang.builder.ToStringBuilder;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -28,10 +24,9 @@ public class RegistrationRequest implements Serializable {
 
 	@JsonProperty("customer_id")
     private Integer customerId;
-
 	@JsonProperty("firstname")
     private String firstname;
-    @JsonProperty("lastname")
+	@JsonProperty("lastname")
     private String lastname;
     @JsonProperty("dateofbirth")
     private Date dateofbirth;

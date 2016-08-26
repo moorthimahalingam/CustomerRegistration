@@ -15,38 +15,41 @@ public class CountryStateCityMapExtractor implements ResultSetExtractor<Map<Inte
 
 	@Override
 	public Map<Integer, CountryCache> extractData(ResultSet rs) throws SQLException, DataAccessException {
+		
 		Map<Integer, CountryCache> countryStateCityMap = new HashMap<Integer, CountryCache>();
+		Map<Integer, String> cityMap = null;
+		Map<Integer, StateCache> stateMap = null;
+		StateCache stateCache = null;
 		
 		while (rs.next()) {
 			Integer countryId = rs.getInt("country_id");
-			CountryCache countryCache = countryStateCityMap.get(countryId); 
-			if (countryCache != null) {
-				Map<Integer, StateCache> stateCacheMap = countryCache.getStateCache();
-				StateCache stateCache = stateCacheMap.get("state_id");
+			CountryCache countryCache = countryStateCityMap.get(countryId);
+			if (countryCache == null) {
+				countryCache = new CountryCache();
+				countryCache.setCountryName(rs.getString("country_name"));
+				stateCache = new StateCache();
+				stateCache.setState(rs.getString("state_name"));
+				cityMap = new HashMap<Integer, String>();
+				cityMap.put(rs.getInt("city_id"), rs.getString("city_name"));
+				stateCache.setCityCache(cityMap);
+				stateMap = new HashMap<Integer, StateCache>();
+				stateMap.put(rs.getInt("state_id"), stateCache);
+				countryCache.setStateCache(stateMap);
+				countryStateCityMap.put(countryId, countryCache);
+			} else {
+				stateMap = countryCache.getStateCache();
+				stateCache = stateMap.get(rs.getInt("state_id"));
 				if (stateCache != null) {
-					Map<Integer, String> cityMap = new HashMap<Integer, String>();
+					cityMap = stateCache.getCityCache();
 					cityMap.put(rs.getInt("city_id"), rs.getString("city_name"));
-					stateCache.setCityCache(cityMap);
 				} else {
 					stateCache = new StateCache();
 					stateCache.setState(rs.getString("state_name"));
-					Map<Integer, String> cityMap = new HashMap<Integer, String>();
+					cityMap = new HashMap<>();
 					cityMap.put(rs.getInt("city_id"), rs.getString("city_name"));
 					stateCache.setCityCache(cityMap);
-					Map<Integer, StateCache> stateMap = new HashMap<Integer, StateCache>();
 					stateMap.put(rs.getInt("state_id"), stateCache);
 				}
-			} else {
-				countryCache = new CountryCache();
-				countryCache.setCountryName(rs.getString("country_name"));
-				StateCache stateCache = new StateCache();
-				stateCache.setState(rs.getString("state_name"));
-				Map<Integer, String> cityMap = new HashMap<Integer, String>();
-				cityMap.put(rs.getInt("city_id"), rs.getString("city_name"));
-				stateCache.setCityCache(cityMap);
-				Map<Integer, StateCache> stateMap = new HashMap<Integer, StateCache>();
-				stateMap.put(rs.getInt("state_id"), stateCache);
-				countryCache.setStateCache(stateMap);
 			}
 		}
 		return countryStateCityMap;
