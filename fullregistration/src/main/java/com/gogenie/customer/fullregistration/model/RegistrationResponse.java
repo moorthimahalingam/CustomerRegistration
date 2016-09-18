@@ -37,6 +37,32 @@ public class RegistrationResponse implements Serializable {
 	@JsonProperty("CardInformation")
     private CardInformation CardInformation;
 	
+	@JsonProperty("existing_customer")
+	private boolean customerExist;
+	
+	@JsonProperty("customer_details")
+	public CustomerDetails customerDetails;
+	
+	@JsonProperty("customer_details")
+	public CustomerDetails getCustomerDetails() {
+		return customerDetails;
+	}
+
+	@JsonProperty("customer_details")
+	public void setCustomerDetails(CustomerDetails customerDetails) {
+		this.customerDetails = customerDetails;
+	}
+
+	@JsonProperty("existing_customer")
+	public boolean isCustomerExist() {
+		return customerExist;
+	}
+
+	@JsonProperty("existing_customer")
+	public void setCustomerExist(boolean customerExist) {
+		this.customerExist = customerExist;
+	}
+	
 	
 	@JsonProperty("responseText")
 	public String getResponseText() {

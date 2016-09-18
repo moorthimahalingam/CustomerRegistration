@@ -41,18 +41,14 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)
 			throws CustomerRegistrationException {
+		
 		logger.debug("Entering into registerCustomer()");
 
 		RegistrationResponse registrationResponse = null;
-
 		registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
-		
 		Integer customerId = registrationResponse.getCustomerId();
-		
 		if (customerId != null) {
-			
 			Address address = registrationRequest.getAddress();
-			
 			if (address != null) {
 				addressDao.insertCustomerAddress(address, customerId);
 			}
@@ -61,18 +57,18 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 				cardInfoDao.insertCardInformation(cardInfo, customerId);
 			}
 			registrationResponse.setCustomerId(customerId);
-			registrationResponse.setResponseText("Customer data has been inserted successfully");
+			registrationResponse.setResponseText("Customer registration is successfully completed");
 		}
 		logger.debug("Exiting from registerCustomer()");
 		return registrationResponse;
 	}
 
 	@Override
-	public boolean existingCustomer(String emailId) throws CustomerRegistrationException {
+	public CustomerDetails existingCustomer(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into existingCustomer()");
-		boolean isCustomerExist = fullRegistrationDao.existingCustomer(emailId);
+		CustomerDetails customerDetails = fullRegistrationDao.existingCustomer(emailId);
 		logger.debug("Exiting from existingCustomer()");
-		return isCustomerExist;
+		return customerDetails;
 	}
 
 	@Override

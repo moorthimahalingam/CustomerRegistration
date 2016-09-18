@@ -32,6 +32,7 @@ import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 import com.gogenie.customer.fullregistration.util.CustomerDetailsExtractor;
+import com.gogenie.customer.fullregistration.util.CustomerRegistrationConstants;
 import com.gogenie.util.constants.CustomerConstants;
 import com.gogenie.util.exceptiom.GoGenieUtilityServiceException;
 import com.gogenie.util.service.EncryptionService;
@@ -59,81 +60,84 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)
 			throws CustomerRegistrationException {
+
 		logger.debug("Entering into registerCustomer()");
-		RegistrationResponse response = new RegistrationResponse();
-		Integer customerId = null;
+		RegistrationResponse response = null;
 		try {
 			String emailId = registrationRequest.getEmail();
 			logger.debug("Email id passed by the customer is {}", emailId);
 			if (emailId != null) {
 				logger.debug("validate the customer's email id is exist before proceed to insert");
-				boolean isCustomerExist = existingCustomer(emailId);
-				if (isCustomerExist)  {
-					logger.debug("Input email is already exist");
-					response.setResponseText("Customer/Email is already exist");
+				CustomerDetails customerDetails = existingCustomer(emailId);
+				if (customerDetails != null) {
+					response = new RegistrationResponse();
+					logger.debug("Email id is already registered");
+					response.setResponseText(CustomerRegistrationConstants.CUSTOMER_EXIST);
+					response.setRegistrationSuccess(false);
+					response.setCustomerExist(true);
+					customerDetails.setPassword(null);
+					response.setCustomerDetails(customerDetails);
 					return response;
 				}
 			}
-			
-			String password = registrationRequest.getPassword();
-			EncryptionService encryption = new EncryptionServiceImpl();
-			logger.debug("Hashed service execution for password");
-			String encryptedPassword = encryption.hashedValue(password);
-			registrationRequest.setEncryptedPassword(encryptedPassword);
-			logger.debug("password hashed successfully ");
-			encryption = null;
-			simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
-					.declareParameters(new SqlParameter(CustomerConstants.FIRSTNAME, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.LASTNAME, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.DATEOFBIRTH, Types.DATE),
-							new SqlParameter(CustomerConstants.EMAIL, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.PASSWORD, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.WORKPHONE, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.MOBILEPHONE, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.PHONE_ISVALID, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.CUST_ISACTIVE, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.CREATEDDATE, Types.DATE),
-							new SqlParameter(CustomerConstants.CREATEDBY, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.SECURITY_QUESTION1, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.SECURITY_ANSWER1, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.SECURITY_QUESTION2, Types.VARCHAR),
-							new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
-							new SqlOutParameter("estatus", Types.VARCHAR),
-							new SqlOutParameter("sstatus", Types.VARCHAR));
-
-			Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
-			
-			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
-
-			if (resultSet.get("estatus") != null) {
-				errorMessageHandler((String)resultSet.get("estatus"));
-			}
-			
-//			List<Map> customerIdResult = (List) resultSet.get("#result-set-1");
-//			logger.debug("Customer Id  is {} ", customerIdResult.toString());
-//			customerId = (Integer) customerIdResult.get(0).get("returnCustId");
-			
-			customerId = (Integer) resultSet.get("sstatus");
-
-			logger.debug("Customer table data has been executed successfully {} ", customerId);
-			response.setRegistrationSuccess(true);
-			response.setCustomerId(customerId);
+			response = registerCustomerBasicInfo(registrationRequest);
 		} catch (Exception e) {
 			logger.error("Exception has occcurred in register customer method");
-			e.printStackTrace();
-			response.setRegistrationSuccess(false);
-			throw new CustomerRegistrationException(e, "111111");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0001,
+					CustomerRegistrationConstants.CUST_REGISTN_0001_DESC);
 		}
 		logger.debug("Exiting from registerCustomer()");
 		return response;
 	}
 
+	private RegistrationResponse registerCustomerBasicInfo(RegistrationRequest registrationRequest) throws Exception {
+		RegistrationResponse response = new RegistrationResponse();
+		String password = registrationRequest.getPassword();
+		EncryptionService encryption = new EncryptionServiceImpl();
+		logger.debug("Hashed service execution for password");
+		String encryptedPassword = encryption.hashedValue(password);
+		registrationRequest.setEncryptedPassword(encryptedPassword);
+		logger.debug("password hashed successfully ");
+		encryption = null;
+		simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter(CustomerConstants.FIRSTNAME, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.LASTNAME, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.DATEOFBIRTH, Types.DATE),
+						new SqlParameter(CustomerConstants.EMAIL, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.PASSWORD, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.WORKPHONE, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.MOBILEPHONE, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.PHONE_ISVALID, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.CUST_ISACTIVE, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.CREATEDDATE, Types.DATE),
+						new SqlParameter(CustomerConstants.CREATEDBY, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.SECURITY_QUESTION1, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.SECURITY_ANSWER1, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.SECURITY_QUESTION2, Types.VARCHAR),
+						new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
+						new SqlOutParameter("estatus", Types.VARCHAR), new SqlOutParameter("sstatus", Types.VARCHAR));
+
+		Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
+
+		logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+
+		if (resultSet.get("estatus") != null) {
+			errorMessageHandler((String) resultSet.get("estatus"));
+		}
+		Integer customerId = (Integer) resultSet.get("sstatus");
+		logger.debug("Customer basic data inserted successfully {} ", customerId);
+		response.setRegistrationSuccess(true);
+		response.setCustomerExist(false);
+		response.setCustomerId(customerId);
+		return response;
+	}
+
 	@Override
-	public boolean existingCustomer(String emailId) throws CustomerRegistrationException {
+	public CustomerDetails existingCustomer(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into existingCustomer()");
-		boolean isCustomerExist = false;
+		CustomerDetails customerDetails = null;
 		try {
-			Integer customer_id = jdbcTemplate.query("select cust_id from customer where email=?",
+			Integer customerId = jdbcTemplate.query("select cust_id from customer where email=?",
 					new Object[] { emailId }, new ResultSetExtractor<Integer>() {
 						public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
 							Integer customerId = null;
@@ -144,14 +148,14 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							return customerId;
 						}
 					});
-			if (customer_id != null) {
-				isCustomerExist = true;
+			if (customerId != null) {
+				customerDetails = retrieveCustomerDetails(customerId, emailId);
 			}
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(e, "111112");
 		}
 		logger.debug("Exiting from existingCustomer()");
-		return isCustomerExist;
+		return customerDetails;
 	}
 
 	@Override
@@ -332,24 +336,20 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customer;
 	}
 
-
-	
-
 	@Override
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = null;
 		try {
-//			simpleJdbcCall = null;
-//			simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+			// simpleJdbcCall = null;
+			// simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 			simpleJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("cu_id", Types.INTEGER),
 							new SqlParameter("first_name", Types.VARCHAR), new SqlParameter("last_name", Types.VARCHAR),
 							new SqlParameter("dob", Types.DATE), new SqlParameter("e_mail", Types.VARCHAR),
 							new SqlParameter("pswd", Types.VARCHAR), new SqlParameter("wrkphone", Types.VARCHAR),
 							new SqlParameter("mobphone", Types.VARCHAR), new SqlParameter("ph_isvalid", Types.VARCHAR),
-							new SqlParameter("cu_isactive", Types.VARCHAR), 
-							new SqlParameter("up_date", Types.DATE),
+							new SqlParameter("cu_isactive", Types.VARCHAR), new SqlParameter("up_date", Types.DATE),
 							new SqlParameter("up_by", Types.VARCHAR),
 							new SqlParameter("security_quest1", Types.VARCHAR),
 							new SqlParameter("security_ans1", Types.VARCHAR),
@@ -366,7 +366,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				logger.debug("password hashed successfully ");
 			}
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
-//			Integer customerId = registrationRequest.getCustomerId();
+			// Integer customerId = registrationRequest.getCustomerId();
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {
@@ -409,7 +409,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		return customer;
 	}
 
-
 	@Override
 	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email)
 			throws CustomerRegistrationException {
@@ -434,7 +433,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	 */
 	private void errorMessageHandler(String errorMessage) throws CustomerRegistrationException {
 		logger.debug("Entering into errorMessageHandler()");
-		logger.debug("Error message  from DB {} " , errorMessage);
+		logger.debug("Error message  from DB {} ", errorMessage);
 		String errorMsg[] = errorMessage.split(":");
 		CustomerRegistrationException cre = new CustomerRegistrationException(errorMsg[0], errorMsg[1]);
 		logger.debug("Exiting from errorMessageHandler()");

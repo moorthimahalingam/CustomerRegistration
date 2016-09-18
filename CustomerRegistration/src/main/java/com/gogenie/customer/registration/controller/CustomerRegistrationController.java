@@ -43,7 +43,10 @@ public class CustomerRegistrationController {
 	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request, BindingResult result)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into customerRegistration()");
-		String email = request.getEmail();
+		RegistrationResponse registrationResponse = registrationService.registerCustomer(request);
+//		return registrationResponse;
+		
+		/*String email = request.getEmail();
 		logger.debug("Validating the customer is existing or not {}", email);
 		boolean isExistingCustomer = registrationService.existingCustomer(email);
 		logger.debug("Customer existing flag {}", isExistingCustomer);
@@ -58,7 +61,7 @@ public class CustomerRegistrationController {
 		logger.debug("This user {} is not exist. Register as a new user", email);
 		registrationResponse = registrationService.registerCustomer(request);
 		logger.debug("User {} is registered sucessfully ", email);
-		registrationResponse.setResponseText("User is successfully registered");
+		registrationResponse.setResponseText("User is successfully registered");*/
 		logger.debug("Exiting from customerRegistration()");
 		return registrationResponse;
 	}
@@ -75,16 +78,12 @@ public class CustomerRegistrationController {
 	}
 
 	@RequestMapping(value = "/validate", method = RequestMethod.GET)
-	public String validateExistingCustomer(@RequestParam(value = "email") String emailId)
+	public CustomerDetails validateExistingCustomer(@RequestParam(value = "email") String emailId)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into validateExistingCustomer()");
-		boolean isExistingCustomer = registrationService.existingCustomer(emailId);
-		logger.debug("Customer validated flag {} ", isExistingCustomer);
-		if (isExistingCustomer) {
-			return "Success";
-		}
+		CustomerDetails existingCustomerDetails = registrationService.existingCustomer(emailId);
 		logger.debug("Exiting from validateExistingCustomer()");
-		return "Not a valid user";
+		return existingCustomerDetails;
 	}
 
 	@RequestMapping(value = "/retrieveSecurityQuestions", method = RequestMethod.GET)

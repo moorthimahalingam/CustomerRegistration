@@ -49,11 +49,14 @@ public class CustomerDetails implements Serializable {
 	@JsonProperty("SecurityQuestions")
 	private SecurityQuestions securityQuestions;
 	@JsonProperty("Address")
-	private List<Address> address = new ArrayList<Address>();
+	private List<Address> address;
 	@JsonProperty("CardInformation")
-	private List<CardInformation> cardinformation = new ArrayList<CardInformation>();
+	private List<CardInformation> cardinformation;
 	@JsonProperty("DeviceInfo")
 	private DeviceInfo deviceInfo;
+	@JsonProperty("existing_customer")
+	private boolean customerExist;
+	
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -314,7 +317,7 @@ public class CustomerDetails implements Serializable {
 	public DeviceInfo getDeviceInfo() {
 		return deviceInfo;
 	}
-
+	
 	/**
 	 * 
 	 * @param deviceInfo
@@ -325,6 +328,17 @@ public class CustomerDetails implements Serializable {
 		this.deviceInfo = deviceInfo;
 	}
 
+	@JsonProperty("existing_customer")
+	public boolean isCustomerExist() {
+		return customerExist;
+	}
+
+	@JsonProperty("existing_customer")
+	public void setCustomerExist(boolean customerExist) {
+		this.customerExist = customerExist;
+	}
+
+	
 	@JsonAnyGetter
 	public Map<String, Object> getAdditionalProperties() {
 		return this.additionalProperties;

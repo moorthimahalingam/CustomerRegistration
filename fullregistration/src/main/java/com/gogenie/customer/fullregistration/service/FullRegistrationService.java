@@ -13,7 +13,7 @@ public interface FullRegistrationService {
 
 	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException;
 	
-	public boolean existingCustomer(String emailId) throws CustomerRegistrationException;
+	public CustomerDetails existingCustomer(String emailId) throws CustomerRegistrationException;
 	
 	public SecurityQuestions retrieveQuestions(String emailId) throws CustomerRegistrationException;
 
