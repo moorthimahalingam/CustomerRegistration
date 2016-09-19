@@ -1,6 +1,6 @@
 package com.gogenie.customer.fullregistration.exception;
 
-public class CustomerRegistrationException extends Exception {
+public class CustomerRegistrationException extends RuntimeException {
 
 	/**
 	 * 

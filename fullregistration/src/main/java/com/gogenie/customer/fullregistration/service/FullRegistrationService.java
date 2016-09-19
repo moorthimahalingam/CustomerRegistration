@@ -3,6 +3,7 @@ package com.gogenie.customer.fullregistration.service;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.LoginDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -11,7 +12,7 @@ public interface FullRegistrationService {
 	
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 
-	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException;
+	public LoginDetails loginCustomer(String emailId, String password) throws CustomerRegistrationException;
 	
 	public CustomerDetails existingCustomer(String emailId) throws CustomerRegistrationException;
 	

@@ -348,5 +348,15 @@ public class CustomerDetails implements Serializable {
 	public void setAdditionalProperty(String name, Object value) {
 		this.additionalProperties.put(name, value);
 	}
+	
+	private String encryptedPassword;
+
+	public String getEncryptedPassword() {
+		return this.encryptedPassword;
+	}
+
+	public void setEncryptedPassword(String encryptedPassword) {
+		this.encryptedPassword = encryptedPassword;
+	}
 
 }

@@ -28,6 +28,7 @@ import org.springframework.stereotype.Repository;
 import com.gogenie.customer.fullregistration.dao.FullRegistrationDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.LoginDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -152,7 +153,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				customerDetails = retrieveCustomerDetails(customerId, emailId);
 			}
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111112");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0012,
+					CustomerRegistrationConstants.CUST_REGISTN_0012_DESC);
 		}
 		logger.debug("Exiting from existingCustomer()");
 		return customerDetails;
@@ -190,50 +192,60 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					new Object[] { encryptedNewPassword, emailId });
 			resetPasswordflag = true;
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111113");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0011,
+					CustomerRegistrationConstants.CUST_REGISTN_0011_DESC);
 		}
 		logger.debug("Exiting from resetPassword()");
 		return resetPasswordflag;
 	}
 
 	@Override
-	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException {
+	public LoginDetails loginCustomer(String emailId, String password) throws CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
-		RegistrationResponse response = null;
+		LoginDetails response = null;
 		try {
 			Object[] loginDetails = new Object[] { emailId };
 
-			response = jdbcTemplate.queryForObject(
-					"select cust_id, firstname, lastname,password from customer where email=? ", loginDetails,
-					new RowMapper<RegistrationResponse>() {
+			response = jdbcTemplate.queryForObject("select password from customer where email=? ", loginDetails,
+					new RowMapper<LoginDetails>() {
 						@Override
-						public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-							RegistrationResponse dbResult = null;
+						public LoginDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
+							LoginDetails loginDetails = new LoginDetails();
 							String encryptedPassword = rs.getString("password");
 							EncryptionService encryption = new EncryptionServiceImpl();
-							try {
-								boolean matched = encryption.validateHashedValue(password, encryptedPassword);
-								logger.debug("Password didn't match ");
-								if (matched) {
-									dbResult = new RegistrationResponse();
-									dbResult.setFirstName(rs.getString("firstname"));
-									dbResult.setLastName(rs.getString("lastname"));
-									dbResult.setCustomerId(rs.getInt("cust_id"));
-								} else {
-									dbResult = new RegistrationResponse();
-									dbResult.setRegistrationSuccess(false);
-									dbResult.setResponseText("Invalid User id and password");
-								}
-							} catch (GoGenieUtilityServiceException e) {
-								dbResult = null;
-								e.printStackTrace();
+							boolean matched = encryption.validateHashedValue(password, encryptedPassword);
+							logger.debug("Password didn't match ");
+							if (matched) {
+								loginDetails.setLoginStatus("Success");
+								CustomerDetails customerDetails = existingCustomer(emailId);
+								customerDetails.setPassword(null);
+								customerDetails.setCardinformation(null);
+								loginDetails.setCustomerDetails(customerDetails);
+							} else {
+								loginDetails = new LoginDetails();
+								loginDetails.setLoginStatus("Invalid userid/password");
 							}
-							return dbResult;
+							return loginDetails;
 						}
 
 					});
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111114");
+			String errorCode = "";
+			String errorMessage = "";
+			if (e instanceof SQLException) {
+				errorCode = CustomerRegistrationConstants.CUST_REGISTN_0002;
+				errorMessage = CustomerRegistrationConstants.CUST_REGISTN_0002_DESC;
+			} else if (e instanceof GoGenieUtilityServiceException) {
+				errorCode = CustomerRegistrationConstants.CUST_REGISTN_0003;
+				errorMessage = CustomerRegistrationConstants.CUST_REGISTN_0003_DESC;
+			} else if (e instanceof CustomerRegistrationException) {
+				errorCode = CustomerRegistrationConstants.CUST_REGISTN_0004;
+				errorMessage = CustomerRegistrationConstants.CUST_REGISTN_0004_DESC;
+			} else {
+				errorCode = CustomerRegistrationConstants.CUST_REGISTN_0005;
+				errorMessage = CustomerRegistrationConstants.CUST_REGISTN_0005_DESC;
+			}
+			throw new CustomerRegistrationException(errorCode, errorMessage);
 		}
 		logger.debug("Exiting from loginCustomer()");
 		return response;
@@ -257,7 +269,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				validationText = "Matched";
 			}
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111115");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0010,
+					CustomerRegistrationConstants.CUST_REGISTN_0010_DESC);
 		}
 		logger.debug("Exiting from validateSecurityQuestions()");
 		return validationText;
@@ -273,7 +286,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					new Object[] { phoneVerifiedFlag, customerId });
 			updateStatus = "Success";
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111116");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0009,
+					CustomerRegistrationConstants.CUST_REGISTN_0009_DESC);
 		}
 		logger.debug("Exiting from updatePhoneVerifiedFlag()");
 		return updateStatus;
@@ -299,7 +313,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 					});
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "111117");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0008,
+					CustomerRegistrationConstants.CUST_REGISTN_0008_DESC);
 		}
 		logger.debug("Exiting from retrievePhoneVerifiedFlag()");
 		return response;
@@ -366,13 +381,12 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				logger.debug("password hashed successfully ");
 			}
 			Map<String, Object> resultSet = simpleJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
-			// Integer customerId = registrationRequest.getCustomerId();
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "updateCustomerDetails");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0006,
+					CustomerRegistrationConstants.CUST_REGISTN_0006_DESC);
 		}
-
 		logger.debug("Exiting from updateCustomerDetails()");
 		return response;
 	}
@@ -420,7 +434,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			customerDetails = (CustomerDetails) namedParameterJdbcTemplate
 					.query("{call get_customer(:cust_id, :email)}", inputParam, new CustomerDetailsExtractor());
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "12312312");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0007,
+					CustomerRegistrationConstants.CUST_REGISTN_0007_DESC);
 		}
 		logger.debug("Exiting from retrieveCustomerDetails()");
 		return customerDetails;

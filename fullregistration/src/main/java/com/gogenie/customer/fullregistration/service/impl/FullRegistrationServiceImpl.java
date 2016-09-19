@@ -14,6 +14,7 @@ import com.gogenie.customer.fullregistration.exception.CustomerRegistrationExcep
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.LoginDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
@@ -25,19 +26,15 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 
 	Logger logger = LoggerFactory.getLogger(FullRegistrationServiceImpl.class);
 
-//	@Autowired
 	@Inject
 	FullRegistrationDAO fullRegistrationDao;
 	
-//	@Autowired
 	@Inject
 	AddressDAO addressDao;
 	
-//	@Autowired
 	@Inject
 	CardInfoDAO cardInfoDao;
 	
-
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)
 			throws CustomerRegistrationException {
@@ -88,11 +85,11 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public RegistrationResponse loginCustomer(String emailId, String password) throws CustomerRegistrationException {
+	public LoginDetails loginCustomer(String emailId, String password) throws CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
-		RegistrationResponse registrationResponse = fullRegistrationDao.loginCustomer(emailId, password);
+		LoginDetails loginDetails = fullRegistrationDao.loginCustomer(emailId, password);
 		logger.debug("Exiting from loginCustomer()");
-		return registrationResponse;
+		return loginDetails;
 	}
 
 	@Override
