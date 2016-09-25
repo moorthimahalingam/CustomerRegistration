@@ -22,24 +22,6 @@ public class RegistrationResponse implements Serializable {
 	@JsonProperty("responseText")
 	private String responseText;
 
-	@JsonProperty("customer_id")
-	private Integer customerId;
-
-	@JsonProperty("firstName")
-	private String firstName;
-
-	@JsonProperty("lastName")
-	private String lastName;
-
-	@JsonProperty("phone_isValid")
-	private String phoneIsValid;
-
-	@JsonProperty("CardInformation")
-    private CardInformation CardInformation;
-	
-	@JsonProperty("existing_customer")
-	private boolean customerExist;
-	
 	@JsonProperty("customer_details")
 	public CustomerDetails customerDetails;
 	
@@ -52,17 +34,6 @@ public class RegistrationResponse implements Serializable {
 	public void setCustomerDetails(CustomerDetails customerDetails) {
 		this.customerDetails = customerDetails;
 	}
-
-	@JsonProperty("existing_customer")
-	public boolean isCustomerExist() {
-		return customerExist;
-	}
-
-	@JsonProperty("existing_customer")
-	public void setCustomerExist(boolean customerExist) {
-		this.customerExist = customerExist;
-	}
-	
 	
 	@JsonProperty("responseText")
 	public String getResponseText() {
@@ -83,66 +54,6 @@ public class RegistrationResponse implements Serializable {
 	public void setRegistrationSuccess(boolean registrationSuccess) {
 		this.registrationSuccess = registrationSuccess;
 	}
-
-	@JsonProperty("customer_id")
-	public Integer getCustomerId() {
-		return customerId;
-	}
-
-	@JsonProperty("customer_id")
-	public void setCustomerId(Integer customerId) {
-		this.customerId = customerId;
-	}
-
-	@JsonProperty("firstName")
-	public String getFirstName() {
-		return firstName;
-	}
-
-	@JsonProperty("firstName")
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	@JsonProperty("lastName")
-	public String getLastName() {
-		return lastName;
-	}
-
-	@JsonProperty("lastName")
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	@JsonProperty("phone_isValid")
-	public String getPhoneIsValid() {
-		return phoneIsValid;
-	}
-
-	@JsonProperty("phone_isValid")
-	public void setPhoneIsValid(String phoneIsValid) {
-		this.phoneIsValid = phoneIsValid;
-	}
-
-	/**
-     * 
-     * @return
-     *     The CardInformation
-     */
-    @JsonProperty("CardInformation")
-    public CardInformation getCardInformation() {
-        return CardInformation;
-    }
-
-    /**
-     * 
-     * @param CardInformation
-     *     The CardInformation
-     */
-    @JsonProperty("CardInformation")
-    public void setCardInformation(CardInformation CardInformation) {
-        this.CardInformation = CardInformation;
-    }
     
 	@Override
 	public String toString() {

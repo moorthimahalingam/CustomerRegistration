@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import com.gogenie.customer.fullregistration.dao.AddressDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
+import com.gogenie.customer.fullregistration.util.CustomerRegistrationConstants;
 import com.gogenie.util.constants.CustomerConstants;
 
 @Repository
@@ -28,18 +30,23 @@ public class AddressDAOImpl implements AddressDAO {
 
 	@Resource
 	private DataSource gogenieDataSource;
-	
 	private SimpleJdbcCall simpleJdbcCall;
+	private SimpleJdbcCall updateCustomerAddr;
+	private JdbcTemplate jdbcTemplate;
 
 	@PostConstruct
 	private void initialize() {
 		this.simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+		this.updateCustomerAddr = new SimpleJdbcCall(gogenieDataSource);
+		this.jdbcTemplate = new JdbcTemplate(gogenieDataSource);
 	}
 
 	@Override
 	public boolean insertCustomerAddress(Address address, Integer customerId) throws CustomerRegistrationException {
 		logger.debug("Entering into insertCustomerAddress()");
 		try {
+			jdbcTemplate.update("update address_details set ISDEFAULT_ADDRESS='N' where CUST_ID = ?",
+					new Object[] { customerId });
 			simpleJdbcCall.withProcedureName("post_address_details").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
 							new SqlParameter(CustomerConstants.COUNTRY_ID, Types.INTEGER),
@@ -55,23 +62,20 @@ public class AddressDAOImpl implements AddressDAO {
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 
 			Map<String, Object> addressResult = simpleJdbcCall.execute(customerAddresDataMap(address, customerId));
-			
 			logger.debug("Address details insert {} result ", addressResult.toString());
-
 			if (addressResult.get("estatus") != null) {
-				errorMessageHandler((String)addressResult.get("estatus"));
+				errorMessageHandler((String) addressResult.get("estatus"));
 			}
- 			
 			logger.debug("Customer {} address has been added successfully {} ", customerId);
-			
 			logger.debug("Exiting from insertCustomerAddress()");
-
 		} catch (Exception e) {
+			jdbcTemplate.update("delete from customer where cust_id=?", new Object[] { customerId });
 			logger.error("Error while inserting customer address ");
-			logger.error("Customer details insert has been rollbacked ");
-			throw new CustomerRegistrationException(e, "23432432");
+			logger.error("Customer details insert has been rollbacked");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0014,
+					CustomerRegistrationConstants.CUST_REGISTN_0014_DESC);
 		}
-		return false;
+		return true;
 	}
 
 	private Map<String, Object> customerAddresDataMap(Address address, Integer custId) {
@@ -95,27 +99,29 @@ public class AddressDAOImpl implements AddressDAO {
 	public String updateCustomerAddress(Address address, Integer customerId) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerAddress()");
 		try {
-			simpleJdbcCall.withProcedureName("put_customer_address").withoutProcedureColumnMetaDataAccess()
-			.declareParameters(new SqlParameter("add_details_id", Types.INTEGER),
-					new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
-					new SqlParameter("st_id", Types.INTEGER), new SqlParameter("ci_id", Types.INTEGER),
-					new SqlParameter("add1", Types.VARCHAR), new SqlParameter("add2", Types.VARCHAR),
-					new SqlParameter("up_by", Types.VARCHAR), new SqlParameter("up_date", Types.DATE),
-					new SqlParameter("zip", Types.VARCHAR), new SqlParameter("isdef_address", Types.VARCHAR),
-					new SqlOutParameter("estatus", Types.VARCHAR), new SqlOutParameter("sstatus", Types.VARCHAR));
-			
-			Map<String, Object> addressResult = simpleJdbcCall.execute(customerUpdateAddresDataMap(address, customerId));
-			logger.debug("Address details insert {} result ", addressResult.toString());
+			updateCustomerAddr.withProcedureName("put_customer_address").withoutProcedureColumnMetaDataAccess()
+					.declareParameters(new SqlParameter("add_details_id", Types.BIGINT),
+							new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("cou_id", Types.INTEGER),
+							new SqlParameter("st_id", Types.INTEGER), new SqlParameter("ci_id", Types.INTEGER),
+							new SqlParameter("add1", Types.VARCHAR), new SqlParameter("add2", Types.VARCHAR),
+							new SqlParameter("up_date", Types.DATE), new SqlParameter("up_by", Types.VARCHAR),
+							new SqlParameter("zip", Types.VARCHAR), new SqlParameter("isdef_address", Types.VARCHAR),
+							new SqlOutParameter("estatus", Types.VARCHAR),
+							new SqlOutParameter("sstatus", Types.VARCHAR));
+
+			Map<String, Object> addressResult = updateCustomerAddr
+					.execute(customerUpdateAddresDataMap(address, customerId));
+			logger.debug("Address details updated result is {} ", addressResult.toString());
 			if (addressResult.get("estatus") != null) {
-				errorMessageHandler((String)addressResult.get("estatus"));
+				errorMessageHandler((String) addressResult.get("estatus"));
 			}
-			
 			logger.debug("Customer {} address detail has been updated", customerId);
-			
 			logger.debug("Exiting from updateCustomerAddress()");
 		} catch (Exception e) {
 			logger.error("Error while updating customer address ");
-			throw new CustomerRegistrationException(e, "2343242");
+			e.printStackTrace();
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0016,
+					CustomerRegistrationConstants.CUST_REGISTN_0016_DESC);
 		}
 		return "Success";
 	}
@@ -147,24 +153,24 @@ public class AddressDAOImpl implements AddressDAO {
 			simpleJdbcCall.withProcedureName("put_customer_default_address").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("add_details_id", Types.BIGINT),
 							new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("up_date", Types.DATE),
-							new SqlParameter("up_by", Types.BIGINT),
-							new SqlParameter("isdef_address", Types.VARCHAR),
+							new SqlParameter("up_by", Types.BIGINT), new SqlParameter("isdef_address", Types.VARCHAR),
 							new SqlOutParameter("estatus", Types.VARCHAR),
-							new SqlOutParameter("sstaus", Types.VARCHAR));
+							new SqlOutParameter("sstatus", Types.VARCHAR));
 			Map<String, Object> updateDefaultAdrMap = new HashMap<String, Object>();
 			updateDefaultAdrMap.put("add_details_id", address.getAddressId());
 			updateDefaultAdrMap.put("cu_id", customerId);
 			updateDefaultAdrMap.put("up_date", new java.sql.Date(new Date().getTime()));
-			updateDefaultAdrMap.put("up_by", 12313123);
+			updateDefaultAdrMap.put("up_by", "Customer");
 			updateDefaultAdrMap.put("isdef_address", "Y");
 			Map<String, Object> result = simpleJdbcCall.execute(updateDefaultAdrMap);
 			if (result.get("estatus") != null) {
-				errorMessageHandler((String)result.get("estatus"));
+				errorMessageHandler((String) result.get("estatus"));
 			}
-			response = (String)result.get("sstatus");
-			
+			response = (String) result.get("sstatus");
+
 		} catch (Exception e) {
-			throw new CustomerRegistrationException(e, "updateCustomerDefaultAddress");
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0015,
+					CustomerRegistrationConstants.CUST_REGISTN_0015_DESC);
 		}
 		logger.debug("Exiting from into updateCustomerDefaultAddress()");
 		return response;

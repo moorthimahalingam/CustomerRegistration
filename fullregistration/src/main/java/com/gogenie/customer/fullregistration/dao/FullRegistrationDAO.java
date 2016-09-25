@@ -19,7 +19,7 @@ public interface FullRegistrationDAO {
 	
 	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException;
 	
-	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
+	public CustomerDetails retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
 	
 	public String updatePhoneVerifiedFlag(Integer customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	

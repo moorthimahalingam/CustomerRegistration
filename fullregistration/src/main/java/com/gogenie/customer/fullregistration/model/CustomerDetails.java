@@ -24,7 +24,7 @@ public class CustomerDetails implements Serializable {
 	 */
 	private static final long serialVersionUID = 5454622163358012013L;
 
-	@JsonProperty("cust_id")
+	@JsonProperty("customer_id")
 	private Integer customerId;
 	@JsonProperty("firstname")
 	private String firstname;
@@ -55,7 +55,7 @@ public class CustomerDetails implements Serializable {
 	@JsonProperty("DeviceInfo")
 	private DeviceInfo deviceInfo;
 	@JsonProperty("existing_customer")
-	private boolean customerExist;
+	private String customerExist;
 	
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -329,12 +329,12 @@ public class CustomerDetails implements Serializable {
 	}
 
 	@JsonProperty("existing_customer")
-	public boolean isCustomerExist() {
+	public String isCustomerExist() {
 		return customerExist;
 	}
 
 	@JsonProperty("existing_customer")
-	public void setCustomerExist(boolean customerExist) {
+	public void setCustomerExist(String customerExist) {
 		this.customerExist = customerExist;
 	}
 

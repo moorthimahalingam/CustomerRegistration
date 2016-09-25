@@ -6,6 +6,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.Address;
+import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CountryCache;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
@@ -49,6 +53,27 @@ public class CustomerRegistrationController {
 		return registrationResponse;
 	}
 
+	@RequestMapping(value = "/retrievePhoneIsValidFlag", method = RequestMethod.GET)
+	public CustomerDetails retrivePhoneValidationFlag(@RequestParam(value = "email") String emailId)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into retrivePhoneValidationFlag()");
+		CustomerDetails response = registrationService.retrievePhoneVerifiedFlag(emailId);
+		logger.debug("Exiting from retrivePhoneValidationFlag()");
+		return response;
+	}
+
+	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
+	public @ResponseBody String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into updatePhoneValidationFlag()");
+		Integer customerId = request.getCustomerId();
+		String verifiedFlag = request.getPhoneValidationFlag();
+		logger.debug("Update the phone verified flag as {}  for the customer {}", verifiedFlag, customerId);
+		String response = registrationService.updatePhoneVerifiedFlag(customerId, verifiedFlag);
+		logger.debug("Exiting from updatePhoneValidationFlag()");
+		return response;
+	}
+
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public LoginDetails loginCustomer(@RequestParam(value = "email") String emailId,
 			@RequestParam(value = "password") String password) throws CustomerRegistrationException {
@@ -73,6 +98,23 @@ public class CustomerRegistrationController {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = registrationService.updateCustomerDetails(request);
 		logger.debug("Exiting from updateCustomerDetails()");
+		return response;
+	}
+	
+	@RequestMapping(value = "/add_Address", method = RequestMethod.POST)
+	public String addNewAddress(@RequestBody RegistrationRequest request, BindingResult result) {
+		logger.debug("Entering into addNewAddress");
+		String response = registrationService.addAdditionalAddress(request.getAddress(), request.getCustomerId());
+		logger.debug("Exiting from addNewAddress");
+		return response;
+	}
+
+	@RequestMapping(value = "/add_cardDetails", method = RequestMethod.POST)
+	public String addNewCardDetails(@RequestBody RegistrationRequest request, BindingResult result) {
+		logger.debug("Entering into addNewCardDetails");
+		String response = registrationService.addAdditionalCardInfo(request.getCardInformation(),
+				request.getCustomerId());
+		logger.debug("Exiting from addNewCardDetails");
 		return response;
 	}
 
@@ -132,26 +174,6 @@ public class CustomerRegistrationController {
 		return "Couldn't update this time. Please try again later";
 	}
 
-	@RequestMapping(value = "/retrievePhoneIsValidFlag", method = RequestMethod.GET)
-	public RegistrationResponse retrivePhoneValidationFlag(@RequestParam(value = "email") String emailId)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into retrivePhoneValidationFlag()");
-		RegistrationResponse response = registrationService.retrievePhoneVerifiedFlag(emailId);
-		logger.debug("Exiting from retrivePhoneValidationFlag()");
-		return response;
-	}
-
-	@RequestMapping(value = "/updateVerificationFlag", method = RequestMethod.PUT)
-	public @ResponseBody String updatePhoneValidationFlag(@RequestBody RegistrationRequest request)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into updatePhoneValidationFlag()");
-		Integer customerId = request.getCustomerId();
-		String verifiedFlag = request.getPhoneValidationFlag();
-		logger.debug("Update the phone verified flag as {}  for the customer {}", verifiedFlag, customerId);
-		String response = registrationService.updatePhoneVerifiedFlag(customerId, verifiedFlag);
-		logger.debug("Exiting from updatePhoneValidationFlag()");
-		return response;
-	}
 
 	@RequestMapping(value = "/countrystateMapping", method = RequestMethod.GET)
 	public @ResponseBody Map<Integer, CountryCache> retrieveCountryStateMapping() throws CustomerRegistrationException {
@@ -162,7 +184,11 @@ public class CustomerRegistrationController {
 	}
 
 	@ExceptionHandler(CustomerRegistrationException.class)
+	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 	public String exceptionHandler(CustomerRegistrationException exception) {
-		return "Exception " + exception.getMessage();
+		StringBuilder errorMessage = new StringBuilder();
+		errorMessage.append(exception.getErrorDesc());
+
+		return errorMessage.toString();
 	}
 }

@@ -27,8 +27,11 @@ public class CardInformation implements Serializable {
 	@JsonProperty ("payment_info_id")
 	private Long paymentInfoId;
 	
-	@JsonProperty("credit_card_number")
-    private String creditcardnumber;
+	@JsonProperty("card_number")
+    private String cardnumber;
+	
+	@JsonProperty("card_last_4digits")
+    private String cardlast4Digits;
 	
     private String encryptedCreditcardumber;
 
@@ -68,21 +71,21 @@ public class CardInformation implements Serializable {
 	/**
      * 
      * @return
-     *     The creditcardnumber
+     *     The cardnumber
      */
-    @JsonProperty("credit_card_number")
-    public String getCreditcardnumber() {
-        return creditcardnumber;
+    @JsonProperty("card_number")
+    public String getCardnumber() {
+        return cardnumber;
     }
 
     /**
      * 
-     * @param creditcardnumber
-     *     The creditcardnumber
+     * @param cardnumber
+     *     The cardnumber
      */
-    @JsonProperty("credit_card_number")
-    public void setCreditcardnumber(String creditcardnumber) {
-        this.creditcardnumber = creditcardnumber;
+    @JsonProperty("card_number")
+    public void setCardnumber(String cardnumber) {
+        this.cardnumber = cardnumber;
     }
 
 //	@JsonProperty("encrypted_creditcardnumber")
@@ -177,5 +180,13 @@ public class CardInformation implements Serializable {
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
+
+	public String getCardlast4Digits() {
+		return cardlast4Digits;
+	}
+
+	public void setCardlast4Digits(String cardlast4Digits) {
+		this.cardlast4Digits = cardlast4Digits;
+	}
 
 }

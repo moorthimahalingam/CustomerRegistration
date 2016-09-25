@@ -3,8 +3,10 @@ package com.gogenie.customer.fullregistration.dao.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -75,8 +77,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					logger.debug("Email id is already registered");
 					response.setResponseText(CustomerRegistrationConstants.CUSTOMER_EXIST);
 					response.setRegistrationSuccess(false);
-					response.setCustomerExist(true);
 					customerDetails.setPassword(null);
+					customerDetails.setCustomerExist("Y");
 					response.setCustomerDetails(customerDetails);
 					return response;
 				}
@@ -84,6 +86,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			response = registerCustomerBasicInfo(registrationRequest);
 		} catch (Exception e) {
 			logger.error("Exception has occcurred in register customer method");
+			e.printStackTrace();
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0001,
 					CustomerRegistrationConstants.CUST_REGISTN_0001_DESC);
 		}
@@ -116,20 +119,20 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 						new SqlParameter(CustomerConstants.SECURITY_ANSWER1, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.SECURITY_QUESTION2, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
-						new SqlOutParameter("estatus", Types.VARCHAR), new SqlOutParameter("sstatus", Types.VARCHAR));
+						new SqlOutParameter("estatus", Types.VARCHAR), 
+						new SqlOutParameter("sstatus", Types.INTEGER));
 
 		Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
-
 		logger.debug("ResultSet is {} customer registration ", resultSet.toString());
-
 		if (resultSet.get("estatus") != null) {
 			errorMessageHandler((String) resultSet.get("estatus"));
 		}
-		Integer customerId = (Integer) resultSet.get("sstatus");
+		Integer customerId = (Integer)resultSet.get("sstatus");
 		logger.debug("Customer basic data inserted successfully {} ", customerId);
 		response.setRegistrationSuccess(true);
-		response.setCustomerExist(false);
-		response.setCustomerId(customerId);
+		CustomerDetails customerDetails = new CustomerDetails();
+		customerDetails.setCustomerId(customerId);
+		response.setCustomerDetails(customerDetails);
 		return response;
 	}
 
@@ -202,34 +205,44 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	@Override
 	public LoginDetails loginCustomer(String emailId, String password) throws CustomerRegistrationException {
 		logger.debug("Entering into loginCustomer()");
-		LoginDetails response = null;
+		LoginDetails loginDetails = new LoginDetails();
 		try {
-			Object[] loginDetails = new Object[] { emailId };
-
-			response = jdbcTemplate.queryForObject("select password from customer where email=? ", loginDetails,
-					new RowMapper<LoginDetails>() {
-						@Override
-						public LoginDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
-							LoginDetails loginDetails = new LoginDetails();
-							String encryptedPassword = rs.getString("password");
-							EncryptionService encryption = new EncryptionServiceImpl();
-							boolean matched = encryption.validateHashedValue(password, encryptedPassword);
-							logger.debug("Password didn't match ");
-							if (matched) {
-								loginDetails.setLoginStatus("Success");
-								CustomerDetails customerDetails = existingCustomer(emailId);
-								customerDetails.setPassword(null);
-								customerDetails.setCardinformation(null);
-								loginDetails.setCustomerDetails(customerDetails);
-							} else {
-								loginDetails = new LoginDetails();
-								loginDetails.setLoginStatus("Invalid userid/password");
-							}
-							return loginDetails;
-						}
-
-					});
+			Object[] loginInputDetails = new Object[] { emailId };
+			Map<String, Object> existingCustMap = jdbcTemplate.queryForObject("select cust_id, password from customer where email=? ", loginInputDetails, new RowMapper<Map<String, Object>>() {
+				@Override
+				public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
+					Map<String, Object> customerDetail = new HashMap();
+					customerDetail.put("password", rs.getString("password"));
+					customerDetail.put("cust_id", rs.getInt("cust_id"));
+					return customerDetail;
+				}
+			});
+			if (existingCustMap != null) {
+				EncryptionService encryption = new EncryptionServiceImpl();
+				String encryptedPassword = (String)existingCustMap.get("password");
+				Integer customerId = (Integer)existingCustMap.get("cust_id");
+				boolean matched = encryption.validateHashedValue(password, encryptedPassword);
+				if (matched) {
+					loginDetails.setLoginStatus("Success");
+					CustomerDetails customerDetails = retrieveCustomerDetails(customerId, emailId);
+					if (customerDetails != null) {
+						customerDetails.setPassword(null);
+						customerDetails.setCardinformation(null);
+						loginDetails.setCustomerDetails(customerDetails);
+					} else {
+						loginDetails.setLoginStatus("Customer is either not active or "
+								+ "phone validation is pending ");
+					}
+				} else {
+					logger.debug("Password didn't match ");
+					loginDetails.setLoginStatus("Invalid userid/password");
+				}
+			} else {
+				loginDetails.setLoginStatus("User id doesn't exist");
+			}
 		} catch (Exception e) {
+			logger.error("Error while retrieving customer login details");
+			e.printStackTrace();
 			String errorCode = "";
 			String errorMessage = "";
 			if (e instanceof SQLException) {
@@ -248,7 +261,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			throw new CustomerRegistrationException(errorCode, errorMessage);
 		}
 		logger.debug("Exiting from loginCustomer()");
-		return response;
+		return loginDetails;
 	}
 
 	@Override
@@ -294,20 +307,21 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	}
 
 	@Override
-	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
+	public CustomerDetails retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrievePhoneVerifiedFlag()");
-		RegistrationResponse response = null;
+		CustomerDetails response = null;
 		try {
 			response = jdbcTemplate.queryForObject("select * from customer where email=?", new Object[] { emailId },
-					new RowMapper<RegistrationResponse>() {
+					new RowMapper<CustomerDetails>() {
 
 						@Override
-						public RegistrationResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-							RegistrationResponse dbResult = new RegistrationResponse();
-							dbResult.setFirstName(rs.getString("firstname"));
-							dbResult.setLastName(rs.getString("lastname"));
+						public CustomerDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
+//							RegistrationResponse dbResult = new RegistrationResponse();
+							CustomerDetails dbResult = new CustomerDetails();
+							dbResult.setFirstname(rs.getString("firstname"));
+							dbResult.setLastname(rs.getString("lastname"));
 							dbResult.setCustomerId(rs.getInt("cust_id"));
-							dbResult.setPhoneIsValid(rs.getString("PHONE_ISVALID"));
+							dbResult.setPhoneValidationFlag(rs.getString("PHONE_ISVALID"));
 							return dbResult;
 						}
 
@@ -356,8 +370,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = null;
 		try {
-			// simpleJdbcCall = null;
-			// simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 			simpleJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("cu_id", Types.INTEGER),
 							new SqlParameter("first_name", Types.VARCHAR), new SqlParameter("last_name", Types.VARCHAR),
@@ -369,8 +381,9 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							new SqlParameter("security_quest1", Types.VARCHAR),
 							new SqlParameter("security_ans1", Types.VARCHAR),
 							new SqlParameter("security_quest2", Types.VARCHAR),
-							new SqlParameter("security_ans2", Types.VARCHAR), new SqlOutParameter("result", Types.BIT),
-							new SqlOutParameter("full_error", Types.VARCHAR));
+							new SqlParameter("security_ans2", Types.VARCHAR), 
+							new SqlOutParameter("estatus", Types.VARCHAR),
+							new SqlOutParameter("sstatus", Types.VARCHAR));
 
 			String password = registrationRequest.getPassword();
 			if (password != null) {
@@ -433,6 +446,9 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					.addValue(CustomerConstants.EMAIL, email);
 			customerDetails = (CustomerDetails) namedParameterJdbcTemplate
 					.query("{call get_customer(:cust_id, :email)}", inputParam, new CustomerDetailsExtractor());
+			if (customerDetails != null) {
+				customerDetails.setCustomerExist("Y");
+			}
 		} catch (Exception e) {
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0007,
 					CustomerRegistrationConstants.CUST_REGISTN_0007_DESC);

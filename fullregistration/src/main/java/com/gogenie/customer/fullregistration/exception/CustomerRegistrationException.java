@@ -34,6 +34,15 @@ public class CustomerRegistrationException extends RuntimeException {
 	private String errorCode;
 	private String errorDesc;
 
+	public String getErrorCode() {
+		return this.errorCode;
+	}
+
+	public String getErrorDesc() {
+		return this.errorDesc;
+	}
+
+	
 	public CustomerRegistrationException(Throwable throwable, String errorDtl, String errCode,
 			String errDec) {
 		super(errorDtl, throwable);
@@ -53,4 +62,6 @@ public class CustomerRegistrationException extends RuntimeException {
 		this.errorCode = errCode;
 		this.errorDesc = errDec;
 	}
+	
+	
 }

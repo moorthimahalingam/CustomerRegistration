@@ -38,6 +38,22 @@ public interface CustomerRegistrationConstants {
 	public static final String CUST_REGISTN_0012 = "CUST_REGISTN_0012";
 	public static final String CUST_REGISTN_0012_DESC = "Customer existing details retrieval failed";
 
+	public static final String CUST_REGISTN_0013 = "CUST_REGISTN_0013";
+	public static final String CUST_REGISTN_0013_DESC = "Failed to insert Card Information";
+
+	public static final String CUST_REGISTN_0014 = "CUST_REGISTN_0014";
+	public static final String CUST_REGISTN_0014_DESC = "Failed to insert Customer address";
+
+	public static final String CUST_REGISTN_0015 = "CUST_REGISTN_0015";
+	public static final String CUST_REGISTN_0015_DESC = "Failed to update Customer default address details";
+
+	public static final String CUST_REGISTN_0016 = "CUST_REGISTN_0016";
+	public static final String CUST_REGISTN_0016_DESC = "Failed to update Customer address details";
+
+	public static final String CUST_REGISTN_0017 = "CUST_REGISTN_0017";
+	public static final String CUST_REGISTN_0017_DESC = "Failed to update Customer card  details";
+
+	
 	public static final String CUSTOMER_EXIST = "Email id is already registered";
 	
 }

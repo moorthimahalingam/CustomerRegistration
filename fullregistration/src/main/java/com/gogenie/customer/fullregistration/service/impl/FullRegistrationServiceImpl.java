@@ -40,21 +40,21 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 			throws CustomerRegistrationException {
 		
 		logger.debug("Entering into registerCustomer()");
-
 		RegistrationResponse registrationResponse = null;
 		registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
-		Integer customerId = registrationResponse.getCustomerId();
-		if (customerId != null) {
-			Address address = registrationRequest.getAddress();
-			if (address != null) {
-				addressDao.insertCustomerAddress(address, customerId);
+		if (registrationResponse.getCustomerDetails() != null) {
+			Integer customerId = registrationResponse.getCustomerDetails().getCustomerId();
+			if (customerId != null) {
+				Address address = registrationRequest.getAddress();
+				if (address != null) {
+					addressDao.insertCustomerAddress(address, customerId);
+				}
+				CardInformation cardInfo = registrationRequest.getCardInformation();
+				if (cardInfo != null) {
+					cardInfoDao.insertCardInformation(cardInfo, customerId);
+				}
+				registrationResponse.setResponseText("Customer registration is successfully completed");
 			}
-			CardInformation cardInfo = registrationRequest.getCardInformation();
-			if (cardInfo != null) {
-				cardInfoDao.insertCardInformation(cardInfo, customerId);
-			}
-			registrationResponse.setCustomerId(customerId);
-			registrationResponse.setResponseText("Customer registration is successfully completed");
 		}
 		logger.debug("Exiting from registerCustomer()");
 		return registrationResponse;
@@ -101,9 +101,9 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public RegistrationResponse retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
+	public CustomerDetails retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrievePhoneVerifiedFlag()");
-		RegistrationResponse response = fullRegistrationDao.retrievePhoneVerifiedFlag(emailId);
+		CustomerDetails response = fullRegistrationDao.retrievePhoneVerifiedFlag(emailId);
 		logger.debug("Exiting from retrievePhoneVerifiedFlag()");
 		return response;
 	}
@@ -150,4 +150,23 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		logger.debug("Exiting from retrieveCustomerDetails()");
 		return customerDetails;
 	}
+
+	@Override
+	public String addAdditionalAddress(Address address, Integer customerId) throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCustomerDetails()");
+		addressDao.insertCustomerAddress(address, customerId);
+		logger.debug("Exiting from retrieveCustomerDetails()");
+		return "Success";
+	}
+
+	@Override
+	public String addAdditionalCardInfo(CardInformation cardInfo, Integer customerId)
+			throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveCustomerDetails()");
+		cardInfoDao.insertCardInformation(cardInfo, customerId);
+		logger.debug("Exiting from retrieveCustomerDetails()");
+		return "Success";
+	}
+	
+	
 }
