@@ -1,5 +1,7 @@
 package com.gogenie.customer.fullregistration.dao;
 
+import java.util.List;
+
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.LoginDetails;

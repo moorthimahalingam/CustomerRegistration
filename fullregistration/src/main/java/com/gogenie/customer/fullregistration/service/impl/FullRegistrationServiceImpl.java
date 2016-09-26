@@ -1,5 +1,7 @@
 package com.gogenie.customer.fullregistration.service.impl;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -42,7 +44,7 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 		logger.debug("Entering into registerCustomer()");
 		RegistrationResponse registrationResponse = null;
 		registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
-		if (registrationResponse.getCustomerDetails() != null) {
+		if (registrationResponse.getRegistrationSuccess() && registrationResponse.getCustomerDetails() != null) {
 			Integer customerId = registrationResponse.getCustomerDetails().getCustomerId();
 			if (customerId != null) {
 				Address address = registrationRequest.getAddress();

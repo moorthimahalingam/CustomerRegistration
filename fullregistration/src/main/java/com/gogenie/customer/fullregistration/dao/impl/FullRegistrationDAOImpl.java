@@ -85,8 +85,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			}
 			response = registerCustomerBasicInfo(registrationRequest);
 		} catch (Exception e) {
-			logger.error("Exception has occcurred in register customer method");
-			e.printStackTrace();
+			logger.error("Exception has occcurred in register customer method {} ", e.getMessage());
+			if (e instanceof CustomerRegistrationException) {
+				CustomerRegistrationException exception = (CustomerRegistrationException) e;
+				throw exception;
+			}
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0001,
 					CustomerRegistrationConstants.CUST_REGISTN_0001_DESC);
 		}
@@ -119,15 +122,14 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 						new SqlParameter(CustomerConstants.SECURITY_ANSWER1, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.SECURITY_QUESTION2, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
-						new SqlOutParameter("estatus", Types.VARCHAR), 
-						new SqlOutParameter("sstatus", Types.INTEGER));
+						new SqlOutParameter("estatus", Types.VARCHAR), new SqlOutParameter("sstatus", Types.INTEGER));
 
 		Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
 		logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 		if (resultSet.get("estatus") != null) {
 			errorMessageHandler((String) resultSet.get("estatus"));
 		}
-		Integer customerId = (Integer)resultSet.get("sstatus");
+		Integer customerId = (Integer) resultSet.get("sstatus");
 		logger.debug("Customer basic data inserted successfully {} ", customerId);
 		response.setRegistrationSuccess(true);
 		CustomerDetails customerDetails = new CustomerDetails();
@@ -156,6 +158,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				customerDetails = retrieveCustomerDetails(customerId, emailId);
 			}
 		} catch (Exception e) {
+			logger.error("Error while retrieving existing customer details {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0012,
 					CustomerRegistrationConstants.CUST_REGISTN_0012_DESC);
 		}
@@ -166,20 +169,29 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	@Override
 	public SecurityQuestions retrieveSecurityQuestion(String emailId) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveSecurityQuestion()");
-		String questionCode1 = "11100";
-		String questionCode2 = "11101";
-		String question1 = "Whats your favorite color";
-		String answer1 = "Red";
+		SecurityQuestions securityQuestions = null;
+		try {
+			securityQuestions = jdbcTemplate.queryForObject(
+					"select security_question1, security_answer1, security_question2, security_answer2 from customer where email=?",
+					new Object[] {}, new RowMapper<SecurityQuestions>() {
+						@Override
+						public SecurityQuestions mapRow(ResultSet rs, int rowNum) throws SQLException {
+							SecurityQuestions questionsAndAnswers = new SecurityQuestions();
+							while (rs.next()) {
+								questionsAndAnswers.setQuestion1(rs.getString("security_question1"));
+								questionsAndAnswers.setAnswer1(rs.getString("security_answer1"));
+								questionsAndAnswers.setQuestion2(rs.getString("security_question2"));
+								questionsAndAnswers.setAnswer2(rs.getString("security_answer2"));
 
-		String question2 = "Whats your favorite sport";
-		String answer2 = "Cricket";
-
-		SecurityQuestions securityQuestions = new SecurityQuestions();
-		securityQuestions.setQuestion1(question1);
-		securityQuestions.setAnswer1(answer1);
-
-		securityQuestions.setQuestion2(question2);
-		securityQuestions.setAnswer2(answer2);
+							}
+							return questionsAndAnswers;
+						}
+					});
+		} catch (Exception e) {
+			logger.error("Error while retrieving customer security questions {}", e.getMessage());
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0018,
+					CustomerRegistrationConstants.CUST_REGISTN_0018_DESC);
+		}
 		logger.debug("Exiting from retrieveSecurityQuestion()");
 		return securityQuestions;
 	}
@@ -191,10 +203,11 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		try {
 			EncryptionService encryptionService = new EncryptionServiceImpl();
 			String encryptedNewPassword = encryptionService.hashedValue(newPassword);
-			jdbcTemplate.update("update customer set password=? where email=?",
+			int updateCount = jdbcTemplate.update("update customer set password=? where email=?",
 					new Object[] { encryptedNewPassword, emailId });
 			resetPasswordflag = true;
 		} catch (Exception e) {
+			logger.error("Error while resetting password {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0011,
 					CustomerRegistrationConstants.CUST_REGISTN_0011_DESC);
 		}
@@ -208,30 +221,32 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		LoginDetails loginDetails = new LoginDetails();
 		try {
 			Object[] loginInputDetails = new Object[] { emailId };
-			Map<String, Object> existingCustMap = jdbcTemplate.queryForObject("select cust_id, password from customer where email=? ", loginInputDetails, new RowMapper<Map<String, Object>>() {
-				@Override
-				public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
-					Map<String, Object> customerDetail = new HashMap();
-					customerDetail.put("password", rs.getString("password"));
-					customerDetail.put("cust_id", rs.getInt("cust_id"));
-					return customerDetail;
-				}
-			});
+			Map<String, Object> existingCustMap = jdbcTemplate.queryForObject(
+					"select cust_id, password from customer where email=? ", loginInputDetails,
+					new RowMapper<Map<String, Object>>() {
+						@Override
+						public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
+							Map<String, Object> customerDetail = new HashMap();
+							customerDetail.put("password", rs.getString("password"));
+							customerDetail.put("cust_id", rs.getInt("cust_id"));
+							return customerDetail;
+						}
+					});
 			if (existingCustMap != null) {
 				EncryptionService encryption = new EncryptionServiceImpl();
-				String encryptedPassword = (String)existingCustMap.get("password");
-				Integer customerId = (Integer)existingCustMap.get("cust_id");
+				String encryptedPassword = (String) existingCustMap.get("password");
+				Integer customerId = (Integer) existingCustMap.get("cust_id");
 				boolean matched = encryption.validateHashedValue(password, encryptedPassword);
 				if (matched) {
 					loginDetails.setLoginStatus("Success");
 					CustomerDetails customerDetails = retrieveCustomerDetails(customerId, emailId);
 					if (customerDetails != null) {
 						customerDetails.setPassword(null);
-						customerDetails.setCardinformation(null);
+						// customerDetails.setCardinformation(null);
 						loginDetails.setCustomerDetails(customerDetails);
 					} else {
-						loginDetails.setLoginStatus("Customer is either not active or "
-								+ "phone validation is pending ");
+						loginDetails
+								.setLoginStatus("Customer is either not active or " + "phone validation is pending ");
 					}
 				} else {
 					logger.debug("Password didn't match ");
@@ -241,7 +256,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				loginDetails.setLoginStatus("User id doesn't exist");
 			}
 		} catch (Exception e) {
-			logger.error("Error while retrieving customer login details");
+			logger.error("Error while retrieving customer login details {}", e.getMessage());
 			e.printStackTrace();
 			String errorCode = "";
 			String errorMessage = "";
@@ -282,6 +297,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				validationText = "Matched";
 			}
 		} catch (Exception e) {
+			logger.error("Error while validating the customer security questions {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0010,
 					CustomerRegistrationConstants.CUST_REGISTN_0010_DESC);
 		}
@@ -299,6 +315,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					new Object[] { phoneVerifiedFlag, customerId });
 			updateStatus = "Success";
 		} catch (Exception e) {
+			logger.error("Error while updating phone verification flag {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0009,
 					CustomerRegistrationConstants.CUST_REGISTN_0009_DESC);
 		}
@@ -316,7 +333,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 						@Override
 						public CustomerDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
-//							RegistrationResponse dbResult = new RegistrationResponse();
+							// RegistrationResponse dbResult = new
+							// RegistrationResponse();
 							CustomerDetails dbResult = new CustomerDetails();
 							dbResult.setFirstname(rs.getString("firstname"));
 							dbResult.setLastname(rs.getString("lastname"));
@@ -327,6 +345,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 
 					});
 		} catch (Exception e) {
+			logger.error("Error while retrieving phone verification flag {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0008,
 					CustomerRegistrationConstants.CUST_REGISTN_0008_DESC);
 		}
@@ -381,7 +400,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							new SqlParameter("security_quest1", Types.VARCHAR),
 							new SqlParameter("security_ans1", Types.VARCHAR),
 							new SqlParameter("security_quest2", Types.VARCHAR),
-							new SqlParameter("security_ans2", Types.VARCHAR), 
+							new SqlParameter("security_ans2", Types.VARCHAR),
 							new SqlOutParameter("estatus", Types.VARCHAR),
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 
@@ -397,6 +416,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {
+			logger.error("Error while updating customer details {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0006,
 					CustomerRegistrationConstants.CUST_REGISTN_0006_DESC);
 		}
@@ -450,6 +470,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				customerDetails.setCustomerExist("Y");
 			}
 		} catch (Exception e) {
+			logger.error("Exception occured while retrieving customer details {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0007,
 					CustomerRegistrationConstants.CUST_REGISTN_0007_DESC);
 		}

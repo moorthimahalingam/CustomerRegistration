@@ -170,12 +170,12 @@ public class Address implements Serializable {
 		this.defaultAddressFlag = defaultAddressFlag;
 	}
     
-    @JsonProperty("addressId")
+    @JsonProperty("address_id")
     public Long getAddressId() {
 		return addressId;
 	}
 
-    @JsonProperty("addressId")
+    @JsonProperty("address_id")
 	public void setAddressId(Long addressId) {
 		this.addressId = addressId;
 	}

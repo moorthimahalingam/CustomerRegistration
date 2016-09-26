@@ -2,16 +2,9 @@
 package com.gogenie.customer.fullregistration.model;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -31,8 +24,6 @@ public class SecurityQuestions implements Serializable {
     private String question2;
     @JsonProperty("answer2")
     private String answer2;
-    @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
      * 
@@ -114,19 +105,9 @@ public class SecurityQuestions implements Serializable {
         this.answer2 = answer2;
     }
 
-    @Override
+	@Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
     }
 
 }

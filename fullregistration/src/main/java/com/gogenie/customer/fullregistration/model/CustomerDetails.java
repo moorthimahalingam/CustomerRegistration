@@ -61,12 +61,12 @@ public class CustomerDetails implements Serializable {
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
 	
-	@JsonProperty("cust_id")
+	@JsonProperty("customer_id")
 	public Integer getCustomerId() {
 		return customerId;
 	}
 
-	@JsonProperty("cust_id")
+	@JsonProperty("customer_id")
 	public void setCustomerId(Integer customerId) {
 		this.customerId = customerId;
 	}

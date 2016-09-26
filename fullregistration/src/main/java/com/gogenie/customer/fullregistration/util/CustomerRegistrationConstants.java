@@ -53,6 +53,8 @@ public interface CustomerRegistrationConstants {
 	public static final String CUST_REGISTN_0017 = "CUST_REGISTN_0017";
 	public static final String CUST_REGISTN_0017_DESC = "Failed to update Customer card  details";
 
+	public static final String CUST_REGISTN_0018 = "CUST_REGISTN_0018";
+	public static final String CUST_REGISTN_0018_DESC = "Failed to retrieve Customer's security questions and answers";
 	
 	public static final String CUSTOMER_EXIST = "Email id is already registered";
 	

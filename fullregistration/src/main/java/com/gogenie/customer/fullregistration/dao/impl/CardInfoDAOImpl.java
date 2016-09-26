@@ -87,10 +87,13 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 			}
 			logger.debug("Card information table data has been executed successfully {} ", customerId);
 		} catch (Exception e) {
-			logger.error("Error while inserting customer card information ()");
+			logger.error("Error while inserting customer card information {}" , e.getMessage());
 			jdbcTemplate.update("delete from address_details where cust_id=?", new Object[] { customerId });
 			jdbcTemplate.update("delete from customer where cust_id=?", new Object[] { customerId });
-			e.printStackTrace();
+			if(e instanceof CustomerRegistrationException) {
+				CustomerRegistrationException exception = (CustomerRegistrationException)e;
+				throw exception;
+			}
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0013,
 					CustomerRegistrationConstants.CUST_REGISTN_0013_DESC);
 		}
@@ -153,7 +156,7 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 			logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
 			logger.debug("Card information table data has been executed successfully {} ", customerId);
 		} catch (Exception e) {
-			logger.error("Error while updating card information");
+			logger.error("Error while updating card information {}" , e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0017,
 					CustomerRegistrationConstants.CUST_REGISTN_0017_DESC);
 		}

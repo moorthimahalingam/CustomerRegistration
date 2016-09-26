@@ -3,12 +3,8 @@ package com.gogenie.customer.fullregistration.model;
 
 import java.io.Serializable;
 import java.sql.Date;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,6 +20,8 @@ public class RegistrationRequest implements Serializable {
 
 	@JsonProperty("customer_id")
     private Integer customerId;
+
+	@NotNull
 	@JsonProperty("firstname")
     private String firstname;
 	@JsonProperty("lastname")
@@ -51,18 +49,16 @@ public class RegistrationRequest implements Serializable {
     SecurityQuestions SecurityQuestions;
     
     @JsonProperty("Address")
+    @NotNull
     private Address Address;
     
 	@JsonProperty("CardInformation")
+	@NotNull
     private CardInformation CardInformation;
 
-	@JsonProperty("DeviceInfo")
+	@JsonProperty("device_info")
 	private DeviceInfo deviceInfo;
 	
-
-	@JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-
     /**
      * 
      * @return
@@ -274,21 +270,5 @@ public class RegistrationRequest implements Serializable {
 	public void setDeviceInfo(DeviceInfo deviceInfo) {
 		this.deviceInfo = deviceInfo;
 	}
-
-	
-	@Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
-    }
 
 }

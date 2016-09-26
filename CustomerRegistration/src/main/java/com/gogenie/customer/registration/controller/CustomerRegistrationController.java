@@ -1,5 +1,6 @@
 package com.gogenie.customer.registration.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,14 +20,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
-import com.gogenie.customer.fullregistration.model.Address;
-import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CountryCache;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
 import com.gogenie.customer.fullregistration.model.LoginDetails;
+import com.gogenie.customer.fullregistration.model.Questions;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
+import com.gogenie.customer.fullregistration.model.SecurityQuestionCache;
 import com.gogenie.customer.fullregistration.model.SecurityQuestions;
 import com.gogenie.customer.fullregistration.service.FullRegistrationService;
 
@@ -44,8 +46,11 @@ public class CustomerRegistrationController {
 	@Inject
 	GoGenieAdrCache goGenieAdrCache;
 
+	@Inject
+	SecurityQuestionCache securityQuestionCache;
+	
 	@RequestMapping(value = "/registration", method = RequestMethod.POST)
-	public RegistrationResponse customerRegistration(@RequestBody RegistrationRequest request, BindingResult result)
+	public RegistrationResponse customerRegistration(@Validated @RequestBody RegistrationRequest request, BindingResult result)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into customerRegistration()");
 		RegistrationResponse registrationResponse = registrationService.registerCustomer(request);
@@ -128,18 +133,14 @@ public class CustomerRegistrationController {
 		return response;
 	}
 
-	@RequestMapping(value = "retrieveCustomerDetails", method = RequestMethod.GET)
+	@RequestMapping(value = "/retrieveCustomerDetails", method = RequestMethod.GET)
 	public @ResponseBody CustomerDetails retrieveCustomerDetails(
 			@RequestParam(value = "customer_id") Integer customerId, @RequestParam(value = "email") String emailId)
 			throws CustomerRegistrationException {
 		CustomerDetails customerDetails = null;
 		logger.debug("Entering into retrieveCustomerDetails()");
-		try {
-			customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
-			logger.debug("Exiting from retrieveCustomerDetails()");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		customerDetails = registrationService.retrieveCustomerDetails(customerId, emailId);
+		logger.debug("Exiting from retrieveCustomerDetails()");
 		return customerDetails;
 	}
 
@@ -152,7 +153,7 @@ public class CustomerRegistrationController {
 		return questions;
 	}
 
-	@RequestMapping(value = "/validateSecurityQuestions", method = RequestMethod.GET)
+	@RequestMapping(value = "/validateSecurityQuestions", method = RequestMethod.POST)
 	public String validateSecurityQuestionsToResetPassword(@RequestBody RegistrationRequest request)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into validateSecurityQuestionsToResetPassword()");
@@ -183,12 +184,19 @@ public class CustomerRegistrationController {
 		return countryCache;
 	}
 
+	@RequestMapping(value = "/security_questions", method = RequestMethod.GET)
+	public @ResponseBody List<Questions> retrieveQuestions() throws CustomerRegistrationException {
+		logger.debug("Entering into retrieveQuestions()");
+		List<Questions> questionsList = securityQuestionCache.getSecurityQuestionsList();
+		logger.debug("Exiting from retrieveQuestions()");
+		return questionsList;
+	}
+	
 	@ExceptionHandler(CustomerRegistrationException.class)
-	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+	@ResponseStatus(HttpStatus.CONFLICT)
 	public String exceptionHandler(CustomerRegistrationException exception) {
 		StringBuilder errorMessage = new StringBuilder();
 		errorMessage.append(exception.getErrorDesc());
-
 		return errorMessage.toString();
 	}
 }

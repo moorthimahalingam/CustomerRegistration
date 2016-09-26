@@ -74,7 +74,8 @@ public class CustomerDetailsExtractor  implements ResultSetExtractor<CustomerDet
 					CardInformation cardInformation = new CardInformation();
 					cardInformation.setPaymentInfoId(customerPaymentInfoId);
 					cardInformation.setPaymentType(rs.getString("PAYEMENTTYPE"));
-					cardInformation.setCardnumber(rs.getString("CARDNUMBER"));
+//					cardInformation.setCardnumber(rs.getString("CARDNUMBER"));
+					cardInformation.setCardlast4Digits(rs.getString("CARD_LAST_FOUR"));
 					cardInformation.setExpirydate(rs.getString("EXPIRYDATE"));
 					cardInformation.setCvvNumber(rs.getInt("CVV_NUMBER"));
 					cardInformation.setNameOnCard(rs.getString("NAME_ON_CARD"));

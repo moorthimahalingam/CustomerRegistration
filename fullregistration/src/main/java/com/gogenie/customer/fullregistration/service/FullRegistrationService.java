@@ -1,5 +1,7 @@
 package com.gogenie.customer.fullregistration.service;
 
+import java.util.List;
+
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
