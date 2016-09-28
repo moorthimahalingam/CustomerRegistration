@@ -1,6 +1,7 @@
 package com.gogenie.customer.fullregistration.model;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -18,13 +19,23 @@ public class GoGenieAdrCache implements Serializable {
 	private Map<Integer, String> stateMap;
 	private Map<Integer, String> cityMap;
 	private Map<Integer, StateCache> stateCityMap;
-	private Map<Integer, CountryCache> countryStateCityMap;
+//	private Map<Integer, CountryCache> countryStateCityMap;
 	
-	public Map<Integer, CountryCache> getCountryStateCityMap() {
+	private List<Country> countryStateCityMap;
+	
+	/*public Map<Integer, CountryCache> getCountryStateCityMap() {
 		return countryStateCityMap;
 	}
 
 	public void setCountryStateCityMap(Map<Integer, CountryCache> countryStateCityMap) {
+		this.countryStateCityMap = countryStateCityMap;
+	}*/
+
+	public List<Country> getCountryStateCityMap() {
+		return countryStateCityMap;
+	}
+
+	public void setCountryStateCityMap(List<Country> countryStateCityMap) {
 		this.countryStateCityMap = countryStateCityMap;
 	}
 

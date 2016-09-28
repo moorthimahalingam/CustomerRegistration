@@ -1,7 +1,5 @@
 package com.gogenie.customer.fullregistration.service.impl;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 

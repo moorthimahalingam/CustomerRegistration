@@ -3,10 +3,8 @@ package com.gogenie.customer.fullregistration.dao.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -18,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -131,6 +128,10 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		}
 		Integer customerId = (Integer) resultSet.get("sstatus");
 		logger.debug("Customer basic data inserted successfully {} ", customerId);
+		if (customerId == null) {
+			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0001,
+					CustomerRegistrationConstants.CUST_REGISTN_0001_DESC);
+		}
 		response.setRegistrationSuccess(true);
 		CustomerDetails customerDetails = new CustomerDetails();
 		customerDetails.setCustomerId(customerId);
@@ -171,13 +172,14 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into retrieveSecurityQuestion()");
 		SecurityQuestions securityQuestions = null;
 		try {
-			securityQuestions = jdbcTemplate.queryForObject(
+			securityQuestions = jdbcTemplate.query(
 					"select security_question1, security_answer1, security_question2, security_answer2 from customer where email=?",
-					new Object[] {}, new RowMapper<SecurityQuestions>() {
+					new Object[] { emailId }, new ResultSetExtractor<SecurityQuestions>() {
 						@Override
-						public SecurityQuestions mapRow(ResultSet rs, int rowNum) throws SQLException {
-							SecurityQuestions questionsAndAnswers = new SecurityQuestions();
+						public SecurityQuestions extractData(ResultSet rs) throws SQLException, DataAccessException {
+							SecurityQuestions questionsAndAnswers = null;
 							while (rs.next()) {
+								questionsAndAnswers = new SecurityQuestions();
 								questionsAndAnswers.setQuestion1(rs.getString("security_question1"));
 								questionsAndAnswers.setAnswer1(rs.getString("security_answer1"));
 								questionsAndAnswers.setQuestion2(rs.getString("security_question2"));
@@ -187,6 +189,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 							return questionsAndAnswers;
 						}
 					});
+
 		} catch (Exception e) {
 			logger.error("Error while retrieving customer security questions {}", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0018,
@@ -220,18 +223,24 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into loginCustomer()");
 		LoginDetails loginDetails = new LoginDetails();
 		try {
+			logger.debug("validate the login credential for the id {}", emailId);
 			Object[] loginInputDetails = new Object[] { emailId };
-			Map<String, Object> existingCustMap = jdbcTemplate.queryForObject(
+
+			Map<String, Object> existingCustMap = jdbcTemplate.query(
 					"select cust_id, password from customer where email=? ", loginInputDetails,
-					new RowMapper<Map<String, Object>>() {
+					new ResultSetExtractor<Map<String, Object>>() {
 						@Override
-						public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
-							Map<String, Object> customerDetail = new HashMap();
-							customerDetail.put("password", rs.getString("password"));
-							customerDetail.put("cust_id", rs.getInt("cust_id"));
+						public Map<String, Object> extractData(ResultSet rs) throws SQLException, DataAccessException {
+							Map<String, Object> customerDetail = null;
+							while (rs.next()) {
+								customerDetail = new HashMap<>();
+								customerDetail.put("password", rs.getString("password"));
+								customerDetail.put("cust_id", rs.getInt("cust_id"));
+							}
 							return customerDetail;
 						}
 					});
+
 			if (existingCustMap != null) {
 				EncryptionService encryption = new EncryptionServiceImpl();
 				String encryptedPassword = (String) existingCustMap.get("password");
@@ -245,8 +254,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 						// customerDetails.setCardinformation(null);
 						loginDetails.setCustomerDetails(customerDetails);
 					} else {
-						loginDetails
-								.setLoginStatus("Customer is either not active or " + "phone validation is pending ");
+						loginDetails.setLoginStatus("Customer is either not active or phone validation is pending ");
 					}
 				} else {
 					logger.debug("Password didn't match ");
@@ -257,7 +265,6 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			}
 		} catch (Exception e) {
 			logger.error("Error while retrieving customer login details {}", e.getMessage());
-			e.printStackTrace();
 			String errorCode = "";
 			String errorMessage = "";
 			if (e instanceof SQLException) {
@@ -282,19 +289,26 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	@Override
 	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException {
 		logger.debug("Entering into validateSecurityQuestions()");
-		String validationText = "Doesn't Match";
+		String matched = "N";
 		try {
 			Object[] validateQuesAndAns = new Object[] { request.getCustomerId(),
 					request.getSecurityQuestions().getQuestion1(), request.getSecurityQuestions().getAnswer1(),
 					request.getSecurityQuestions().getQuestion2(), request.getSecurityQuestions().getAnswer2() };
-
-			Integer customer_id = jdbcTemplate.queryForObject(
-					"select count(*) from customer where cust_id=? "
-							+ " and security_question1=? and security_answer1=? and security_question2=? and security_answer1=?",
-					validateQuesAndAns, Integer.class);
-
-			if (customer_id != null && customer_id > 0) {
-				validationText = "Matched";
+			
+			Integer customer_id = jdbcTemplate.query("select cust_id from customer where cust_id=? "
+							+ " and security_question1=? and security_answer1=? and security_question2=? and security_answer1=?",validateQuesAndAns, 
+							new ResultSetExtractor<Integer>(){
+								@Override
+								public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+									Integer customerId = null;
+									if (rs.next()) {
+										customerId = rs.getInt("cust_id");
+									}
+									return customerId;
+								}});
+			
+			if (customer_id != null) {
+				matched = "Y";
 			}
 		} catch (Exception e) {
 			logger.error("Error while validating the customer security questions {} ", e.getMessage());
@@ -302,7 +316,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 					CustomerRegistrationConstants.CUST_REGISTN_0010_DESC);
 		}
 		logger.debug("Exiting from validateSecurityQuestions()");
-		return validationText;
+		return matched;
 	}
 
 	@Override
@@ -311,8 +325,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into updatePhoneVerifiedFlag()");
 		String updateStatus = "Failed";
 		try {
-			jdbcTemplate.update("update customer set phone_isvalid=? where cust_id=?",
-					new Object[] { phoneVerifiedFlag, customerId });
+			jdbcTemplate.update("update customer set phone_isvalid=?, cust_isactive=? where cust_id=?",
+					new Object[] { phoneVerifiedFlag, phoneVerifiedFlag, customerId });
 			updateStatus = "Success";
 		} catch (Exception e) {
 			logger.error("Error while updating phone verification flag {} ", e.getMessage());
@@ -328,21 +342,20 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into retrievePhoneVerifiedFlag()");
 		CustomerDetails response = null;
 		try {
-			response = jdbcTemplate.queryForObject("select * from customer where email=?", new Object[] { emailId },
-					new RowMapper<CustomerDetails>() {
-
+			response = jdbcTemplate.query("select * from customer where email=?", new Object[] { emailId },
+					new ResultSetExtractor<CustomerDetails>() {
 						@Override
-						public CustomerDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
-							// RegistrationResponse dbResult = new
-							// RegistrationResponse();
-							CustomerDetails dbResult = new CustomerDetails();
-							dbResult.setFirstname(rs.getString("firstname"));
-							dbResult.setLastname(rs.getString("lastname"));
-							dbResult.setCustomerId(rs.getInt("cust_id"));
-							dbResult.setPhoneValidationFlag(rs.getString("PHONE_ISVALID"));
+						public CustomerDetails extractData(ResultSet rs) throws SQLException, DataAccessException {
+							CustomerDetails dbResult = null;
+							if (rs.next()) {
+								dbResult = new CustomerDetails();
+								dbResult.setFirstname(rs.getString("firstname"));
+								dbResult.setLastname(rs.getString("lastname"));
+								dbResult.setCustomerId(rs.getInt("cust_id"));
+								dbResult.setPhoneValidationFlag(rs.getString("PHONE_ISVALID"));
+							}
 							return dbResult;
 						}
-
 					});
 		} catch (Exception e) {
 			logger.error("Error while retrieving phone verification flag {} ", e.getMessage());

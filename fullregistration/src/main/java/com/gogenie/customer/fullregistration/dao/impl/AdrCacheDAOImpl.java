@@ -3,6 +3,7 @@ package com.gogenie.customer.fullregistration.dao.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.gogenie.customer.fullregistration.dao.AdrCacheDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
+import com.gogenie.customer.fullregistration.model.Country;
 import com.gogenie.customer.fullregistration.model.CountryCache;
 import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
 import com.gogenie.customer.fullregistration.model.StateCache;
@@ -85,7 +87,7 @@ public class AdrCacheDAOImpl implements AdrCacheDAO {
 					}
 				});
 
-		logger.debug("State map values are {} ", stateMap.toString());
+		logger.debug("Country map values are {} ", countryMap.toString());
 		goGenieAdrCache.setCountryMap(countryMap);
 
 		Map<Integer, StateCache> stateCityMap = (Map<Integer, StateCache>) jdbcTemplate.query(
@@ -115,7 +117,11 @@ public class AdrCacheDAOImpl implements AdrCacheDAO {
 		logger.debug("State and City map values are {} ", stateCityMap.toString());
 		goGenieAdrCache.setStateCityMap(stateCityMap);
 
-		Map<Integer, CountryCache> countryStateAndCityMap = (Map<Integer, CountryCache>) jdbcTemplate.query(
+		/*Map<Integer, CountryCache> countryStateAndCityMap = (Map<Integer, CountryCache>) jdbcTemplate.query(
+				"select co.country_id, co.country_name, s.state_id, s.state_name, c.city_id, c.city_name from state s , city c, country co where co.country_id=s.country_id and co.country_id=c.country_id order by co.country_id, s.state_id asc",
+				new CountryStateCityMapExtractor());*/
+		
+		List<Country> countryStateAndCityMap = (List<Country>) jdbcTemplate.query(
 				"select co.country_id, co.country_name, s.state_id, s.state_name, c.city_id, c.city_name from state s , city c, country co where co.country_id=s.country_id and co.country_id=c.country_id order by co.country_id, s.state_id asc",
 				new CountryStateCityMapExtractor());
 		

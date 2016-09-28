@@ -46,6 +46,7 @@ public class SpringConfig {
 		JndiTemplate jndiTemplate = new JndiTemplate();
 	    DataSource gogenieDataSource
 	            = (DataSource) jndiTemplate.lookup(GOGENIE_JNDI);
+	    
 //	    		= (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/MyGogenieDB");	
 		return gogenieDataSource;
 	}

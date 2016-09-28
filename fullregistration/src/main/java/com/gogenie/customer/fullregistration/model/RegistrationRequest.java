@@ -20,8 +20,6 @@ public class RegistrationRequest implements Serializable {
 
 	@JsonProperty("customer_id")
     private Integer customerId;
-
-	@NotNull
 	@JsonProperty("firstname")
     private String firstname;
 	@JsonProperty("lastname")

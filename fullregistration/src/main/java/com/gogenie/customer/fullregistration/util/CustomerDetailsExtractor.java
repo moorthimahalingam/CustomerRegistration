@@ -31,7 +31,6 @@ public class CustomerDetailsExtractor  implements ResultSetExtractor<CustomerDet
 		Map<Object, Object> addressDetailIdMap = new HashMap<Object, Object>();
 		Map<Object, Object> paymentInfoIdMap = new HashMap<Object, Object>();
 		while (rs.next()) {
-			logger.debug("Result set value is {}", rs.toString());
 			if (customerDetails == null) {
 				customerDetails = new CustomerDetails();
 				customerDetails.setCustomerId(rs.getInt(CustomerConstants.CUST_ID));
