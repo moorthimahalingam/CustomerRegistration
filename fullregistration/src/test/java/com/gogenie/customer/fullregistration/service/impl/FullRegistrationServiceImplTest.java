@@ -1,9 +1,7 @@
 package com.gogenie.customer.fullregistration.service.impl;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,9 +119,9 @@ public class FullRegistrationServiceImplTest {
 	public void reset_Customer_credential_sucessful() throws CustomerRegistrationException {
 		String emailId = "dafkj@ac.com";
 		String password = "dskafjkjda";
-		when(fullRegistrationDAO.resetPassword(emailId, password)).thenReturn(true);
-		boolean resetSuccess = service.resetCustomerCredential(emailId, password);
-		assertTrue(resetSuccess);
+		when(fullRegistrationDAO.resetPassword(emailId, password)).thenReturn("Success");
+		String resetSuccess = service.resetCustomerCredential(emailId, password);
+		assertNotNull(resetSuccess);
 		verify(fullRegistrationDAO).resetPassword(emailId, password);
 	}
 
@@ -131,9 +129,9 @@ public class FullRegistrationServiceImplTest {
 	public void reset_Customer_credential_failed() throws CustomerRegistrationException {
 		String emailId = "dafkj@ac.com";
 		String password = "dskafjkjda";
-		when(fullRegistrationDAO.resetPassword(emailId, password)).thenReturn(false);
-		boolean resetSuccess = service.resetCustomerCredential(emailId, password);
-		assertFalse(resetSuccess);
+		when(fullRegistrationDAO.resetPassword(emailId, password)).thenReturn("failed");
+		String resetSuccess = service.resetCustomerCredential(emailId, password);
+		assertNotNull(resetSuccess);
 		verify(fullRegistrationDAO).resetPassword(emailId, password);
 	}
 

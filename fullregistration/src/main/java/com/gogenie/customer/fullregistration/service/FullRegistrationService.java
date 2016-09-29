@@ -1,7 +1,5 @@
 package com.gogenie.customer.fullregistration.service;
 
-import java.util.List;
-
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
@@ -27,7 +25,7 @@ public interface FullRegistrationService {
 	
 	public String updatePhoneVerifiedFlag(Integer customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	
-	public boolean resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException;
+	public String resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException;
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	

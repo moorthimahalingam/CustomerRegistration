@@ -1,7 +1,6 @@
 package com.gogenie.customer.registration.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Country;
-import com.gogenie.customer.fullregistration.model.CountryCache;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
 import com.gogenie.customer.fullregistration.model.GoGenieAdrCache;
 import com.gogenie.customer.fullregistration.model.LoginDetails;
@@ -104,7 +102,7 @@ public class CustomerRegistrationController {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = registrationService.updateCustomerDetails(request);
 		logger.debug("Exiting from updateCustomerDetails()");
-		return "{\"responseText\" :" + response + "}";
+		return "{\"responseText\" : \"" + response + " \"}";
 	}
 
 	@RequestMapping(value = "/add_Address", method = RequestMethod.POST)
@@ -112,7 +110,7 @@ public class CustomerRegistrationController {
 		logger.debug("Entering into addNewAddress");
 		String response = registrationService.addAdditionalAddress(request.getAddress(), request.getCustomerId());
 		logger.debug("Exiting from addNewAddress");
-		return "{\"responseText\" :" + response + "}";
+		return "{\"responseText\" : \"" + response + " \"}";
 	}
 
 	@RequestMapping(value = "/add_cardDetails", method = RequestMethod.POST)
@@ -121,7 +119,7 @@ public class CustomerRegistrationController {
 		String response = registrationService.addAdditionalCardInfo(request.getCardInformation(),
 				request.getCustomerId());
 		logger.debug("Exiting from addNewCardDetails");
-		return "{\"responseText\" :" + response + "}";
+		return "{\"responseText\" : \"" + response + " \"}";
 	}
 
 	@RequestMapping(value = "/updateCustAddressAsDefault", method = RequestMethod.PUT)
@@ -131,7 +129,7 @@ public class CustomerRegistrationController {
 		String response = registrationService.updateCustomerDefaultAddress(request.getAddress(),
 				request.getCustomerId());
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
-		return "{\"responseText\" :" + response + "}";
+		return "{\"responseText\" : \"" + response + " \"}";
 	}
 
 	@RequestMapping(value = "/retrieveCustomerDetails", method = RequestMethod.GET)
@@ -160,7 +158,7 @@ public class CustomerRegistrationController {
 		logger.debug("Entering into validateSecurityQuestionsToResetPassword()");
 		String matched = registrationService.validateSecurityQuestions(request);
 		logger.debug("Exiting from validateSecurityQuestionsToResetPassword()");
-		return "{\"matched\": " + matched + "}";
+		return "{\"matched\": \"" + matched + " \"}";
 	}
 
 	@RequestMapping(value = "/resetPassword", method = RequestMethod.PUT)
@@ -168,19 +166,14 @@ public class CustomerRegistrationController {
 			throws CustomerRegistrationException {
 		logger.debug("Entering into resetPassword()");
 		logger.debug("Resetting the password for the email {}", request.getEmail());
-		boolean passwordReset = false;
-		String response;
+		String response = null;
 		if (request.getEmail() != null) {
-			passwordReset = registrationService.resetCustomerCredential(request.getEmail(), request.getPassword());
-			if (!passwordReset) {
-				response = "Couldn't update this time. Please try again later";
-			}
+			response = registrationService.resetCustomerCredential(request.getEmail(), request.getPassword());
 		} else {
 			response = "Email id is not passed";
 		}
-		response = "Password has been reset successfully";
 		logger.debug("Exiting from resetPassword()");
-		return "{\"responseText\":" + response + "}";
+		return "{\"responseText\" : \"" + response + " \"}";
 	}
 
 	@RequestMapping(value = "/countrystateMapping", method = RequestMethod.GET)
@@ -203,6 +196,6 @@ public class CustomerRegistrationController {
 	@ExceptionHandler(CustomerRegistrationException.class)
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public String exceptionHandler(CustomerRegistrationException exception) {
-		return "{\"errorResponse\":" + exception.getErrorDesc() + "}";
+		return "{\"errorResponse\": \"" + exception.getErrorDesc() + " \"}";
 	}
 }

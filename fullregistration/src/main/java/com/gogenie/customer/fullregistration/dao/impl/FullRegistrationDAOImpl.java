@@ -200,15 +200,19 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	}
 
 	@Override
-	public boolean resetPassword(String emailId, String newPassword) throws CustomerRegistrationException {
+	public String resetPassword(String emailId, String newPassword) throws CustomerRegistrationException {
 		logger.debug("Entering into resetPassword()");
-		boolean resetPasswordflag = false;
+		String resetPasswordflag = null;
 		try {
 			EncryptionService encryptionService = new EncryptionServiceImpl();
 			String encryptedNewPassword = encryptionService.hashedValue(newPassword);
 			int updateCount = jdbcTemplate.update("update customer set password=? where email=?",
 					new Object[] { encryptedNewPassword, emailId });
-			resetPasswordflag = true;
+			if (updateCount  > 0) {
+				resetPasswordflag = "Email id "+ emailId + " is incorrect";
+			} else {
+				resetPasswordflag = "Password reset is completed";
+			}
 		} catch (Exception e) {
 			logger.error("Error while resetting password {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0011,

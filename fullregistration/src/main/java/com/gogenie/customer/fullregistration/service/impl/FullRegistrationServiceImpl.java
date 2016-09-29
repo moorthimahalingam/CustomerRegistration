@@ -77,9 +77,9 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public boolean resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException {
+	public String resetCustomerCredential(String emailId, String newPassword) throws CustomerRegistrationException {
 		logger.debug("Entering into resetCustomerCredential()");
-		boolean passwordReset = fullRegistrationDao.resetPassword(emailId, newPassword);
+		String passwordReset = fullRegistrationDao.resetPassword(emailId, newPassword);
 		logger.debug("Exiting from resetCustomerCredential()");
 		return passwordReset;
 	}

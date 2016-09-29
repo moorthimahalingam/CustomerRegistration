@@ -25,7 +25,7 @@ public interface FullRegistrationDAO {
 	
 	public String updatePhoneVerifiedFlag(Integer customerId, String phoneverifiedFlag) throws CustomerRegistrationException;
 	
-	public boolean resetPassword(String emailId, String newPassword) throws CustomerRegistrationException ;
+	public String resetPassword(String emailId, String newPassword) throws CustomerRegistrationException ;
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
