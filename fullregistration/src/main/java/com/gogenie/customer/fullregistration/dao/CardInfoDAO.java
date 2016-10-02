@@ -5,12 +5,9 @@ import com.gogenie.customer.fullregistration.model.CardInformation;
 
 public interface CardInfoDAO {
 
-	public boolean insertCardInformation(CardInformation cardInfo, Integer customerId)
-			throws CustomerRegistrationException;
+	public boolean insertCardInformation(CardInformation cardInfo) throws CustomerRegistrationException;
 
-	public boolean updateCardInformation(CardInformation cardInfo, Integer customerId)
-			throws CustomerRegistrationException;
+	public boolean updateCardInformation(CardInformation cardInfo) throws CustomerRegistrationException;
 
-	public boolean updateDefaultCardInfo(CardInformation cardInfo, Integer customerId)
-			throws CustomerRegistrationException;
+	public boolean updateDefaultCardInfo(CardInformation cardInfo) throws CustomerRegistrationException;
 }

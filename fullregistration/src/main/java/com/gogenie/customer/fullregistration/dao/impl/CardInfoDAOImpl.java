@@ -51,12 +51,13 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 	}
 
 	@Override
-	public boolean insertCardInformation(CardInformation cardInfo, Integer customerId)
+	public boolean insertCardInformation(CardInformation cardInfo)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into insertCardInformation()");
+		Integer customerId = cardInfo.getCustomerId();
 		try {
 			jdbcTemplate.update("update customer_payment_info set ISDEFAULT='N' where CUST_ID = ?",
-					new Object[] { customerId });
+					new Object[] { cardInfo.getCustomerId() });
 
 			simpleJdbcCall.withProcedureName("post_cust_payment_info").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter(CustomerConstants.CUST_ID, Types.INTEGER),
@@ -78,7 +79,7 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 							new SqlOutParameter("estatus", Types.VARCHAR),
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 			Map<String, Object> cardInsertResult = simpleJdbcCall
-					.execute(customerCardInformationDataMap(cardInfo, customerId));
+					.execute(customerCardInformationDataMap(cardInfo));
 
 			logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
 
@@ -101,10 +102,10 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 		return true;
 	}
 
-	private Map<String, Object> customerCardInformationDataMap(CardInformation cardInformation, Integer custId) {
+	private Map<String, Object> customerCardInformationDataMap(CardInformation cardInformation) {
 		logger.debug("Entering into customerCardInformationDataMap()");
 		Map<String, Object> cardDetails = new HashMap<>();
-		cardDetails.put(CustomerConstants.CUST_ID, custId);
+		cardDetails.put(CustomerConstants.CUST_ID, cardInformation.getCustomerId());
 		cardDetails.put(CustomerConstants.PAYEMENTTYPE, cardInformation.getPaymentType());
 		String cardNumber = cardInformation.getCardnumber();
 		EncryptionService encryptionService = new EncryptionServiceImpl();
@@ -133,7 +134,7 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 	}
 
 	@Override
-	public boolean updateCardInformation(CardInformation cardInfo, Integer customerId)
+	public boolean updateCardInformation(CardInformation cardInfo)
 			throws CustomerRegistrationException {
 		logger.debug("Entering into updateCardInformation()");
 		try {
@@ -151,10 +152,10 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 							new SqlOutParameter("estatus", Types.VARCHAR),
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 			Map<String, Object> cardInsertResult = updateCardCall
-					.execute(customerUpdateCardInformationDataMap(cardInfo, customerId));
+					.execute(customerUpdateCardInformationDataMap(cardInfo));
 
 			logger.debug("Card Insert Resultset is {}", cardInsertResult.toString());
-			logger.debug("Card information table data has been executed successfully {} ", customerId);
+			logger.debug("Card information table data has been executed successfully {} ", cardInfo.getCustomerId());
 		} catch (Exception e) {
 			logger.error("Error while updating card information {}" , e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0017,
@@ -164,11 +165,11 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 		return true;
 	}
 
-	private Map<String, Object> customerUpdateCardInformationDataMap(CardInformation cardInformation, Integer custId) {
+	private Map<String, Object> customerUpdateCardInformationDataMap(CardInformation cardInformation) {
 		logger.debug("Entering into customerUpdateCardInformationDataMap()");
 		Map<String, Object> cardDetails = new HashMap<>();
 		cardDetails.put("cust_payment_info_id", cardInformation.getPaymentInfoId());
-		cardDetails.put("cu_id", custId);
+		cardDetails.put("cu_id", cardInformation.getCustomerId());
 		cardDetails.put("paytype", cardInformation.getPaymentType());
 		String cardNumber = cardInformation.getCardnumber();
 		EncryptionService encryptionService = new EncryptionServiceImpl();
@@ -196,7 +197,7 @@ public class CardInfoDAOImpl implements CardInfoDAO {
 	}
 
 	@Override
-	public boolean updateDefaultCardInfo(CardInformation cardInfo, Integer customerId)
+	public boolean updateDefaultCardInfo(CardInformation cardInfo)
 			throws CustomerRegistrationException {
 		return false;
 	}

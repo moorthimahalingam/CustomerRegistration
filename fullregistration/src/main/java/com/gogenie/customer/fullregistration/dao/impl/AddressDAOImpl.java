@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import com.gogenie.customer.fullregistration.dao.AddressDAO;
 import com.gogenie.customer.fullregistration.exception.CustomerRegistrationException;
 import com.gogenie.customer.fullregistration.model.Address;
+import com.gogenie.customer.fullregistration.model.DefaultAddressFlag;
 import com.gogenie.customer.fullregistration.util.CustomerRegistrationConstants;
 import com.gogenie.util.constants.CustomerConstants;
 
@@ -44,8 +45,9 @@ public class AddressDAOImpl implements AddressDAO {
 	}
 
 	@Override
-	public boolean insertCustomerAddress(Address address, Integer customerId) throws CustomerRegistrationException {
+	public boolean insertCustomerAddress(Address address) throws CustomerRegistrationException {
 		logger.debug("Entering into insertCustomerAddress()");
+		Integer customerId = address.getCustomerId();
 		try {
 			jdbcTemplate.update("update address_details set ISDEFAULT_ADDRESS='N' where CUST_ID = ?",
 					new Object[] { customerId });
@@ -63,7 +65,8 @@ public class AddressDAOImpl implements AddressDAO {
 							new SqlOutParameter("estatus", Types.VARCHAR),
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 
-			Map<String, Object> addressResult = insertCustomerAddress.execute(customerAddresDataMap(address, customerId));
+			Map<String, Object> addressResult = insertCustomerAddress
+					.execute(customerAddresDataMap(address));
 			logger.debug("Address details insert {} result ", addressResult.toString());
 			if (addressResult.get("estatus") != null) {
 				errorMessageHandler((String) addressResult.get("estatus"));
@@ -74,8 +77,8 @@ public class AddressDAOImpl implements AddressDAO {
 			jdbcTemplate.update("delete from customer where cust_id=?", new Object[] { customerId });
 			logger.error("Error while inserting customer address {} ", e.getMessage());
 			logger.error("Customer details insert has been rollbacked");
-			if(e instanceof CustomerRegistrationException) {
-				CustomerRegistrationException exception = (CustomerRegistrationException)e;
+			if (e instanceof CustomerRegistrationException) {
+				CustomerRegistrationException exception = (CustomerRegistrationException) e;
 				throw exception;
 			}
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0014,
@@ -84,10 +87,10 @@ public class AddressDAOImpl implements AddressDAO {
 		return true;
 	}
 
-	private Map<String, Object> customerAddresDataMap(Address address, Integer custId) {
+	private Map<String, Object> customerAddresDataMap(Address address) {
 		logger.debug("Entering into customerAddresDataMap()");
 		Map<String, Object> addressDetails = new HashMap<>();
-		addressDetails.put(CustomerConstants.CUST_ID, custId);
+		addressDetails.put(CustomerConstants.CUST_ID, address.getCustomerId());
 		addressDetails.put(CustomerConstants.COUNTRY_ID, address.getCountry());
 		addressDetails.put(CustomerConstants.STATE_ID, address.getState());
 		addressDetails.put(CustomerConstants.CITY_ID, address.getCity());
@@ -102,7 +105,7 @@ public class AddressDAOImpl implements AddressDAO {
 	}
 
 	@Override
-	public String updateCustomerAddress(Address address, Integer customerId) throws CustomerRegistrationException {
+	public String updateCustomerAddress(Address address) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerAddress()");
 		try {
 			updateCustomerAddr.withProcedureName("put_customer_address").withoutProcedureColumnMetaDataAccess()
@@ -116,17 +119,17 @@ public class AddressDAOImpl implements AddressDAO {
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 
 			Map<String, Object> addressResult = updateCustomerAddr
-					.execute(customerUpdateAddresDataMap(address, customerId));
+					.execute(customerUpdateAddresDataMap(address));
 			logger.debug("Address details updated result is {} ", addressResult.toString());
 			if (addressResult.get("estatus") != null) {
 				errorMessageHandler((String) addressResult.get("estatus"));
 			}
-			logger.debug("Customer {} address detail has been updated", customerId);
+			logger.debug("Customer {} address detail has been updated", address.getCustomerId());
 			logger.debug("Exiting from updateCustomerAddress()");
 		} catch (Exception e) {
-			logger.error("Error while updating customer address {} " , e.getMessage());
-			if(e instanceof CustomerRegistrationException) {
-				CustomerRegistrationException exception = (CustomerRegistrationException)e;
+			logger.error("Error while updating customer address {} ", e.getMessage());
+			if (e instanceof CustomerRegistrationException) {
+				CustomerRegistrationException exception = (CustomerRegistrationException) e;
 				throw exception;
 			}
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0016,
@@ -135,11 +138,11 @@ public class AddressDAOImpl implements AddressDAO {
 		return "Success";
 	}
 
-	private Map<String, Object> customerUpdateAddresDataMap(Address address, Integer custId) {
+	private Map<String, Object> customerUpdateAddresDataMap(Address address) {
 		logger.debug("Entering into customerUpdateAddresDataMap()");
 		Map<String, Object> addressDetails = new HashMap<>();
 		addressDetails.put("add_details_id", address.getAddressId());
-		addressDetails.put("cu_id", custId);
+		addressDetails.put("cu_id", address.getCustomerId());
 		addressDetails.put("cou_id", address.getCountry());
 		addressDetails.put("st_id", address.getState());
 		addressDetails.put("ci_id", address.getCity());
@@ -154,12 +157,12 @@ public class AddressDAOImpl implements AddressDAO {
 	}
 
 	@Override
-	public String updateCustomerDefaultAddress(Address address, Integer customerId)
-			throws CustomerRegistrationException {
+	public String updateCustomerDefaultAddress(DefaultAddressFlag address) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDefaultAddress()");
 		String response = null;
 		try {
-			updateCustomerAddrAsDefault.withProcedureName("put_customer_default_address").withoutProcedureColumnMetaDataAccess()
+			updateCustomerAddrAsDefault.withProcedureName("put_customer_default_address")
+					.withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("add_details_id", Types.BIGINT),
 							new SqlParameter("cu_id", Types.INTEGER), new SqlParameter("up_date", Types.DATE),
 							new SqlParameter("up_by", Types.VARCHAR), new SqlParameter("isdef_address", Types.VARCHAR),
@@ -167,7 +170,7 @@ public class AddressDAOImpl implements AddressDAO {
 							new SqlOutParameter("sstatus", Types.VARCHAR));
 			Map<String, Object> updateDefaultAdrMap = new HashMap<String, Object>();
 			updateDefaultAdrMap.put("add_details_id", address.getAddressId());
-			updateDefaultAdrMap.put("cu_id", customerId);
+			updateDefaultAdrMap.put("cu_id", address.getCustomerId());
 			updateDefaultAdrMap.put("up_date", new java.sql.Date(new Date().getTime()));
 			updateDefaultAdrMap.put("up_by", "Customer");
 			updateDefaultAdrMap.put("isdef_address", "Y");
@@ -179,8 +182,8 @@ public class AddressDAOImpl implements AddressDAO {
 
 		} catch (Exception e) {
 			logger.error("Error in update customer default address {}", e.getMessage());
-			if(e instanceof CustomerRegistrationException) {
-				CustomerRegistrationException exception = (CustomerRegistrationException)e;
+			if (e instanceof CustomerRegistrationException) {
+				CustomerRegistrationException exception = (CustomerRegistrationException) e;
 				throw exception;
 			}
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0015,

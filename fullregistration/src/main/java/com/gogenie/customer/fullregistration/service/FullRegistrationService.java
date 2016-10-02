@@ -4,6 +4,7 @@ import com.gogenie.customer.fullregistration.exception.CustomerRegistrationExcep
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.DefaultAddressFlag;
 import com.gogenie.customer.fullregistration.model.LoginDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
@@ -19,7 +20,7 @@ public interface FullRegistrationService {
 	
 	public SecurityQuestions retrieveQuestions(String emailId) throws CustomerRegistrationException;
 
-	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException;
+	public String validateSecurityQuestions(SecurityQuestions request) throws CustomerRegistrationException;
 
 	public CustomerDetails retrievePhoneVerifiedFlag(String emailId) throws CustomerRegistrationException;
 	
@@ -29,12 +30,12 @@ public interface FullRegistrationService {
 	
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException;
 	
-	public String updateCustomerDefaultAddress(Address address, Integer customerId) throws CustomerRegistrationException;
+	public String updateCustomerDefaultAddress(DefaultAddressFlag address) throws CustomerRegistrationException;
 	
 	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email) throws CustomerRegistrationException;
 	
-	public String addAdditionalAddress(Address address, Integer customerId) throws CustomerRegistrationException;
+	public String addAdditionalAddress(Address address) throws CustomerRegistrationException;
 	
-	public String addAdditionalCardInfo(CardInformation cardInfo, Integer customerId) throws CustomerRegistrationException;
+	public String addAdditionalCardInfo(CardInformation cardInfo) throws CustomerRegistrationException;
 	
 }

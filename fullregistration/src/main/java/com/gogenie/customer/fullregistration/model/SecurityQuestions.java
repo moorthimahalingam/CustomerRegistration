@@ -2,6 +2,9 @@
 package com.gogenie.customer.fullregistration.model;
 
 import java.io.Serializable;
+
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,9 +20,12 @@ public class SecurityQuestions implements Serializable {
 	private static final long serialVersionUID = 1221625005481656931L;
 	
 	@JsonProperty("question1")
+	@NotNull(message="error.question1.notnull")
     private String question1;
     @JsonProperty("answer1")
+    @NotNull(message="error.answer1.notnull")
     private String answer1;
+    
     @JsonProperty("question2")
     private String question2;
     @JsonProperty("answer2")
@@ -105,6 +111,19 @@ public class SecurityQuestions implements Serializable {
         this.answer2 = answer2;
     }
 
+    @JsonProperty("customer_id")
+	private Integer customerId;
+
+	@JsonProperty("customer_id")
+	public Integer getCustomerId() {
+		return customerId;
+	}
+
+	@JsonProperty("customer_id")
+	public void setCustomerId(Integer customerId) {
+		this.customerId = customerId;
+	}
+	
 	@Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);

@@ -14,6 +14,7 @@ import com.gogenie.customer.fullregistration.exception.CustomerRegistrationExcep
 import com.gogenie.customer.fullregistration.model.Address;
 import com.gogenie.customer.fullregistration.model.CardInformation;
 import com.gogenie.customer.fullregistration.model.CustomerDetails;
+import com.gogenie.customer.fullregistration.model.DefaultAddressFlag;
 import com.gogenie.customer.fullregistration.model.LoginDetails;
 import com.gogenie.customer.fullregistration.model.RegistrationRequest;
 import com.gogenie.customer.fullregistration.model.RegistrationResponse;
@@ -28,17 +29,17 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 
 	@Inject
 	FullRegistrationDAO fullRegistrationDao;
-	
+
 	@Inject
 	AddressDAO addressDao;
-	
+
 	@Inject
 	CardInfoDAO cardInfoDao;
-	
+
 	@Override
 	public RegistrationResponse registerCustomer(RegistrationRequest registrationRequest)
 			throws CustomerRegistrationException {
-		
+
 		logger.debug("Entering into registerCustomer()");
 		RegistrationResponse registrationResponse = null;
 		registrationResponse = fullRegistrationDao.registerCustomer(registrationRequest);
@@ -47,11 +48,13 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 			if (customerId != null) {
 				Address address = registrationRequest.getAddress();
 				if (address != null) {
-					addressDao.insertCustomerAddress(address, customerId);
+					address.setCustomerId(customerId);
+					addressDao.insertCustomerAddress(address);
 				}
 				CardInformation cardInfo = registrationRequest.getCardInformation();
 				if (cardInfo != null) {
-					cardInfoDao.insertCardInformation(cardInfo, customerId);
+					cardInfo.setCustomerId(customerId);
+					cardInfoDao.insertCardInformation(cardInfo);
 				}
 				registrationResponse.setResponseText("Customer registration is successfully completed");
 			}
@@ -93,7 +96,7 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException {
+	public String validateSecurityQuestions(SecurityQuestions request) throws CustomerRegistrationException {
 		logger.debug("Entering into validateSecurityQuestions()");
 		String securityQuestionValidatedResult = fullRegistrationDao.validateSecurityQuestions(request);
 		logger.debug("Exiting from validateSecurityQuestions()");
@@ -120,31 +123,33 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	@Override
 	public String updateCustomerDetails(RegistrationRequest registrationRequest) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDetails()");
-		
+
 		String response = fullRegistrationDao.updateCustomerDetails(registrationRequest);
 		Address address = registrationRequest.getAddress();
 		if (address != null) {
-			addressDao.updateCustomerAddress(address, registrationRequest.getCustomerId());
+			address.setCustomerId(registrationRequest.getCustomerId());
+			addressDao.updateCustomerAddress(address);
 		}
 		CardInformation cardInfo = registrationRequest.getCardInformation();
 		if (cardInfo != null) {
-			cardInfoDao.updateCardInformation(cardInfo, registrationRequest.getCustomerId());
+			cardInfo.setCustomerId(registrationRequest.getCustomerId());
+			cardInfoDao.updateCardInformation(cardInfo);
 		}
 		logger.debug("Exiting from updateCustomerDetails()");
 		return response;
 	}
 
 	@Override
-	public String updateCustomerDefaultAddress(Address address, Integer customerId)
-			throws CustomerRegistrationException {
+	public String updateCustomerDefaultAddress(DefaultAddressFlag address) throws CustomerRegistrationException {
 		logger.debug("Entering into updateCustomerDefaultAddress()");
-		String response = addressDao.updateCustomerDefaultAddress(address, customerId);
+		String response = addressDao.updateCustomerDefaultAddress(address);
 		logger.debug("Exiting from updateCustomerDefaultAddress()");
 		return response;
 	}
 
 	@Override
-	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email) throws CustomerRegistrationException {
+	public CustomerDetails retrieveCustomerDetails(Integer customerId, String email)
+			throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveCustomerDetails()");
 		CustomerDetails customerDetails = fullRegistrationDao.retrieveCustomerDetails(customerId, email);
 		logger.debug("Exiting from retrieveCustomerDetails()");
@@ -152,21 +157,19 @@ public class FullRegistrationServiceImpl implements FullRegistrationService {
 	}
 
 	@Override
-	public String addAdditionalAddress(Address address, Integer customerId) throws CustomerRegistrationException {
+	public String addAdditionalAddress(Address address) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveCustomerDetails()");
-		addressDao.insertCustomerAddress(address, customerId);
+		addressDao.insertCustomerAddress(address);
 		logger.debug("Exiting from retrieveCustomerDetails()");
 		return "Success";
 	}
 
 	@Override
-	public String addAdditionalCardInfo(CardInformation cardInfo, Integer customerId)
-			throws CustomerRegistrationException {
+	public String addAdditionalCardInfo(CardInformation cardInfo) throws CustomerRegistrationException {
 		logger.debug("Entering into retrieveCustomerDetails()");
-		cardInfoDao.insertCardInformation(cardInfo, customerId);
+		cardInfoDao.insertCardInformation(cardInfo);
 		logger.debug("Exiting from retrieveCustomerDetails()");
 		return "Success";
 	}
-	
-	
+
 }

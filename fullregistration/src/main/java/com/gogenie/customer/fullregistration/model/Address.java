@@ -5,6 +5,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -27,16 +29,21 @@ public class Address implements Serializable {
 	@JsonProperty("address_id")
 	private Long addressId;
 	@JsonProperty("addressline1")
-    private String addressline1;
+    @NotNull(message="error.adr1.notnull")
+	private String addressline1;
     @JsonProperty("addressline2")
     private String addressline2;
     @JsonProperty("city")
+    @NotNull(message="error.city.notnull")
     private Integer city;
     @JsonProperty("state")
+    @NotNull(message="error.state.notnull")
     private Integer state;
     @JsonProperty("postalcode")
+    @NotNull(message="error.postalcode.notnull")
     private String postalcode;
     @JsonProperty("country")
+    @NotNull(message="error.country.notnull")
     private Integer country;
 	@JsonProperty("defaultAddressFlag")
     private String defaultAddressFlag;
@@ -189,5 +196,18 @@ public class Address implements Serializable {
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
+
+    @JsonProperty("customer_id")
+	private Integer customerId;
+	
+    @JsonProperty("customer_id")
+	public Integer getCustomerId() {
+		return customerId;
+	}
+    
+    @JsonProperty("customer_id")
+	public void setCustomerId(Integer customerId) {
+		this.customerId = customerId;
+	}
 
 }

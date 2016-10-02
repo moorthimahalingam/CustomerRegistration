@@ -47,13 +47,16 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	private DataSource gogenieDataSource;
 
 	private JdbcTemplate jdbcTemplate;
-	private SimpleJdbcCall simpleJdbcCall;
+	private SimpleJdbcCall insertJdbcCall;
+	private SimpleJdbcCall updateJdbcCall;
+	
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@PostConstruct
 	public void initialize() {
 		this.jdbcTemplate = new JdbcTemplate(gogenieDataSource);
-		this.simpleJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+		this.insertJdbcCall = new SimpleJdbcCall(gogenieDataSource);
+		this.updateJdbcCall = new SimpleJdbcCall(gogenieDataSource);
 		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(gogenieDataSource);
 	}
 
@@ -103,7 +106,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		registrationRequest.setEncryptedPassword(encryptedPassword);
 		logger.debug("password hashed successfully ");
 		encryption = null;
-		simpleJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
+		insertJdbcCall.withProcedureName("post_customer_detail").withoutProcedureColumnMetaDataAccess()
 				.declareParameters(new SqlParameter(CustomerConstants.FIRSTNAME, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.LASTNAME, Types.VARCHAR),
 						new SqlParameter(CustomerConstants.DATEOFBIRTH, Types.DATE),
@@ -121,7 +124,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 						new SqlParameter(CustomerConstants.SECURITY_ANSWER2, Types.VARCHAR),
 						new SqlOutParameter("estatus", Types.VARCHAR), new SqlOutParameter("sstatus", Types.INTEGER));
 
-		Map<String, Object> resultSet = simpleJdbcCall.execute(customerDataMap(registrationRequest));
+		Map<String, Object> resultSet = insertJdbcCall.execute(customerDataMap(registrationRequest));
 		logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 		if (resultSet.get("estatus") != null) {
 			errorMessageHandler((String) resultSet.get("estatus"));
@@ -208,8 +211,8 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			String encryptedNewPassword = encryptionService.hashedValue(newPassword);
 			int updateCount = jdbcTemplate.update("update customer set password=? where email=?",
 					new Object[] { encryptedNewPassword, emailId });
-			if (updateCount  > 0) {
-				resetPasswordflag = "Email id "+ emailId + " is incorrect";
+			if (updateCount > 0) {
+				resetPasswordflag = "Email id " + emailId + " is incorrect";
 			} else {
 				resetPasswordflag = "Password reset is completed";
 			}
@@ -291,26 +294,31 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 	}
 
 	@Override
-	public String validateSecurityQuestions(RegistrationRequest request) throws CustomerRegistrationException {
+	public String validateSecurityQuestions(SecurityQuestions request) throws CustomerRegistrationException {
 		logger.debug("Entering into validateSecurityQuestions()");
 		String matched = "N";
+		Object[] validateQuesAndAns = null;
+		String query = "select cust_id from customer where cust_id=? and security_question1=? and security_answer1=? ";
 		try {
-			Object[] validateQuesAndAns = new Object[] { request.getCustomerId(),
-					request.getSecurityQuestions().getQuestion1(), request.getSecurityQuestions().getAnswer1(),
-					request.getSecurityQuestions().getQuestion2(), request.getSecurityQuestions().getAnswer2() };
-			
-			Integer customer_id = jdbcTemplate.query("select cust_id from customer where cust_id=? "
-							+ " and security_question1=? and security_answer1=? and security_question2=? and security_answer1=?",validateQuesAndAns, 
-							new ResultSetExtractor<Integer>(){
-								@Override
-								public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
-									Integer customerId = null;
-									if (rs.next()) {
-										customerId = rs.getInt("cust_id");
-									}
-									return customerId;
-								}});
-			
+			if (request.getQuestion2() != null) {
+				validateQuesAndAns = new Object[] { request.getCustomerId(), request.getQuestion1(),
+						request.getAnswer1(), request.getQuestion2(), request.getAnswer2() };
+				query += " and security_question2=? and security_answer2=?";
+			} else {
+				validateQuesAndAns = new Object[] { request.getCustomerId(), request.getQuestion1(),
+						request.getAnswer1()};
+			}
+			Integer customer_id = jdbcTemplate.query(query, validateQuesAndAns, new ResultSetExtractor<Integer>() {
+				@Override
+				public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+					Integer customerId = null;
+					if (rs.next()) {
+						customerId = rs.getInt("cust_id");
+					}
+					return customerId;
+				}
+			});
+
 			if (customer_id != null) {
 				matched = "Y";
 			}
@@ -406,7 +414,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 		logger.debug("Entering into updateCustomerDetails()");
 		String response = null;
 		try {
-			simpleJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
+			updateJdbcCall.withProcedureName("put_customer_details").withoutProcedureColumnMetaDataAccess()
 					.declareParameters(new SqlParameter("cu_id", Types.INTEGER),
 							new SqlParameter("first_name", Types.VARCHAR), new SqlParameter("last_name", Types.VARCHAR),
 							new SqlParameter("dob", Types.DATE), new SqlParameter("e_mail", Types.VARCHAR),
@@ -429,7 +437,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				registrationRequest.setEncryptedPassword(encryptedPassword);
 				logger.debug("password hashed successfully ");
 			}
-			Map<String, Object> resultSet = simpleJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
+			Map<String, Object> resultSet = updateJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
 			response = resultSet.toString();
 		} catch (Exception e) {

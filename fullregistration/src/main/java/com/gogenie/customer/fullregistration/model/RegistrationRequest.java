@@ -4,7 +4,11 @@ package com.gogenie.customer.fullregistration.model;
 import java.io.Serializable;
 import java.sql.Date;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Email;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -20,39 +24,52 @@ public class RegistrationRequest implements Serializable {
 
 	@JsonProperty("customer_id")
     private Integer customerId;
+	
 	@JsonProperty("firstname")
+	@NotNull(message="error.firstname.notnull")
     private String firstname;
+	
 	@JsonProperty("lastname")
+	@NotNull(message="error.lastname.notnull")
     private String lastname;
+	
     @JsonProperty("dateofbirth")
     private Date dateofbirth;
     @JsonProperty("email")
+    @NotNull(message="error.email.notnull")
+    @Email(message="error.email.invalid")
     private String email;
+    
     @JsonProperty("password")
+    @NotNull(message="error.password.notnull")
     private String password;
 
-//    @JsonProperty("encrypted_password")
     private String encryptedPassword;
 
 	@JsonProperty("mobilephone")
-    private String mobilephone;
+	@NotNull(message="error.mobilephone.notnull")
+	private String mobilephone;
+	
 	@JsonProperty("workphone")
-    private String workphone;
+	@NotNull(message="error.workphone.notnull")
+	private String workphone;
+	
 	@JsonProperty("phoneValidationFlag")
-    private String phoneValidationFlag;
+	@NotNull(message="error.phoneValidationFlag.notnull")
+	private String phoneValidationFlag;
+	
 	@JsonProperty("machinfo")
 	private String machinfo;
 
     @JsonProperty("SecurityQuestions")
-    SecurityQuestions SecurityQuestions;
+    @NotNull(message="error.securityQuestions.notnull")
+    SecurityQuestions securityQuestions;
     
     @JsonProperty("Address")
-    @NotNull
-    private Address Address;
+    private Address address;
     
 	@JsonProperty("CardInformation")
-	@NotNull
-    private CardInformation CardInformation;
+    private CardInformation cardInformation;
 
 	@JsonProperty("device_info")
 	private DeviceInfo deviceInfo;
@@ -174,8 +191,8 @@ public class RegistrationRequest implements Serializable {
      *     The SecurityQuestions
      */
     @JsonProperty("SecurityQuestions")
-    public com.gogenie.customer.fullregistration.model.SecurityQuestions getSecurityQuestions() {
-        return SecurityQuestions;
+    public SecurityQuestions getSecurityQuestions() {
+        return securityQuestions;
     }
 
     /**
@@ -184,8 +201,8 @@ public class RegistrationRequest implements Serializable {
      *     The SecurityQuestions
      */
     @JsonProperty("SecurityQuestions")
-    public void setSecurityQuestions(com.gogenie.customer.fullregistration.model.SecurityQuestions SecurityQuestions) {
-        this.SecurityQuestions = SecurityQuestions;
+    public void setSecurityQuestions(SecurityQuestions SecurityQuestions) {
+        this.securityQuestions = SecurityQuestions;
     }
 
     /**
@@ -194,8 +211,8 @@ public class RegistrationRequest implements Serializable {
      *     The Address
      */
     @JsonProperty("Address")
-    public com.gogenie.customer.fullregistration.model.Address getAddress() {
-        return Address;
+    public Address getAddress() {
+        return address;
     }
 
     /**
@@ -204,8 +221,8 @@ public class RegistrationRequest implements Serializable {
      *     The Address
      */
     @JsonProperty("Address")
-    public void setAddress(com.gogenie.customer.fullregistration.model.Address Address) {
-        this.Address = Address;
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     
@@ -215,8 +232,8 @@ public class RegistrationRequest implements Serializable {
      *     The CardInformation
      */
     @JsonProperty("CardInformation")
-    public com.gogenie.customer.fullregistration.model.CardInformation getCardInformation() {
-        return CardInformation;
+    public CardInformation getCardInformation() {
+        return cardInformation;
     }
 
     /**
@@ -225,8 +242,8 @@ public class RegistrationRequest implements Serializable {
      *     The CardInformation
      */
     @JsonProperty("CardInformation")
-    public void setCardInformation(com.gogenie.customer.fullregistration.model.CardInformation CardInformation) {
-        this.CardInformation = CardInformation;
+    public void setCardInformation(CardInformation cardInformation) {
+        this.cardInformation = cardInformation;
     }
 
     @JsonProperty("password")
