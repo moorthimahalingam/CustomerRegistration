@@ -439,7 +439,7 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 			}
 			Map<String, Object> resultSet = updateJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
 			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
-			response = resultSet.toString();
+			response = "Customer details are updated sucessfully";
 		} catch (Exception e) {
 			logger.error("Error while updating customer details {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0006,
