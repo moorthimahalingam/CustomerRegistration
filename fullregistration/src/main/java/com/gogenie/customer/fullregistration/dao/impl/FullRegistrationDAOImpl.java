@@ -438,8 +438,16 @@ public class FullRegistrationDAOImpl implements FullRegistrationDAO {
 				logger.debug("password hashed successfully ");
 			}
 			Map<String, Object> resultSet = updateJdbcCall.execute(customerUpdatedDataMap(registrationRequest));
-			logger.debug("ResultSet is {} customer registration ", resultSet.toString());
-			response = "Customer details are updated sucessfully";
+			if (resultSet != null) {
+				logger.debug("ResultSet is {} customer registration ", resultSet.toString());
+				if (resultSet.get("estatus") != null) {
+					errorMessageHandler((String)resultSet.get("estatus"));
+				} else if ((Integer)resultSet.get("#update-count-1") == 1) {
+					response = "Customer's details are updated successfully";
+				} else {
+					response = "Couldn't find the customer details for this id " + registrationRequest.getCustomerId();
+				}
+			}
 		} catch (Exception e) {
 			logger.error("Error while updating customer details {} ", e.getMessage());
 			throw new CustomerRegistrationException(CustomerRegistrationConstants.CUST_REGISTN_0006,

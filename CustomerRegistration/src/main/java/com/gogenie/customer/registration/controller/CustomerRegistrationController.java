@@ -93,24 +93,6 @@ public class CustomerRegistrationController {
 		return "{\"responseText\" : \"" + response + "\"}";
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public LoginDetails loginCustomer(@RequestParam(value = "email", required = true) String emailId,
-			@RequestParam(value = "password", required = true) String password) throws CustomerRegistrationException {
-		logger.debug("Entering into loginCustomer()");
-		LoginDetails response = registrationService.loginCustomer(emailId, password);
-		logger.debug("Exiting from loginCustomer()");
-		return response;
-	}
-
-	@RequestMapping(value = "/validate", method = RequestMethod.GET)
-	public CustomerDetails validateExistingCustomer(@RequestParam(value = "email", required = true) String emailId)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into validateExistingCustomer()");
-		CustomerDetails existingCustomerDetails = registrationService.existingCustomer(emailId);
-		logger.debug("Exiting from validateExistingCustomer()");
-		return existingCustomerDetails;
-	}
-
 	@RequestMapping(value = "/updateCustomer", method = RequestMethod.PUT)
 	public String updateCustomerDetails(@Validated @RequestBody RegistrationRequest request)
 			throws CustomerRegistrationException {
@@ -155,34 +137,7 @@ public class CustomerRegistrationController {
 		logger.debug("Exiting from retrieveCustomerDetails()");
 		return customerDetails;
 	}
-
-	@RequestMapping(value = "/retrieveSecurityQuestions", method = RequestMethod.GET)
-	public SecurityQuestions retrieveSecurityQuestionsToResetPassword(
-			@RequestParam(value = "email", required = true) String emailId) throws CustomerRegistrationException {
-		logger.debug("Entering into retrieveSecurityQuestionsToResetPassword()");
-		SecurityQuestions questions = registrationService.retrieveQuestions(emailId);
-		logger.debug("Exiting from retrieveSecurityQuestionsToResetPassword()");
-		return questions;
-	}
-
-	@RequestMapping(value = "/validateSecurityQuestions", method = RequestMethod.POST)
-	public String validateSecurityQuestionsToResetPassword(@Validated @RequestBody SecurityQuestions request)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into validateSecurityQuestionsToResetPassword()");
-		String matched = registrationService.validateSecurityQuestions(request);
-		logger.debug("Exiting from validateSecurityQuestionsToResetPassword()");
-		return "{\"matched\": \"" + matched + " \"}";
-	}
-
-	@RequestMapping(value = "/resetPassword", method = RequestMethod.PUT)
-	public String resetPassword(@Validated @RequestBody ResetPassword request)
-			throws CustomerRegistrationException {
-		logger.debug("Entering into resetPassword()");
-		logger.debug("Resetting the password for the email {}", request.getEmail());
-		String response = registrationService.resetCustomerCredential(request.getEmail(), request.getPassword());
-		logger.debug("Exiting from resetPassword()");
-		return "{\"responseText\" : \"" + response + " \"}";
-	}
+	
 
 	@RequestMapping(value = "/countrystateMapping", method = RequestMethod.GET)
 	public List<Country> retrieveCountryStateMapping() throws CustomerRegistrationException {
